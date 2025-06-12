@@ -1,4 +1,4 @@
-package um.edu.uy.tadsAuxiliares;
+package um.edu.uy.tadsAuxiliares.hashtable;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -96,7 +96,11 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
 
         for (int i = 0; i < viejaCapacidad; i++) {
             if (tablaVieja[i] != null) {
-                insertar(tablaVieja[i].getClave(), tablaVieja[i].getValor());
+                try {
+                    insertar(tablaVieja[i].getClave(), tablaVieja[i].getValor());
+                } catch (ElementoYaExistenteException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

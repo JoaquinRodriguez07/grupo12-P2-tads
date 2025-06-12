@@ -1,4 +1,4 @@
-package um.edu.uy.tadsAuxiliares;
+package um.edu.uy.tadsAuxiliares.hashtable;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
