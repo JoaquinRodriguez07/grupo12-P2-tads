@@ -1,4 +1,4 @@
-package um.edu.uy.tadsAuxiliares;
+package um.edu.uy.tadsAuxiliares.hashtable;
 
 import um.edu.uy.excepciones.ElementoYaExistenteException;
 public interface HashTable<K,T> {
