@@ -78,7 +78,7 @@ public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
 
     @SuppressWarnings("unchecked")
     private void redimensionar() {
-        T[] nuevo = (T[]) new Object[datos.length * 2];
+        T[] nuevo = (T[]) new Comparable[datos.length * 2];
         for (int i = 0; i < tamanio; i++) {
             nuevo[i] = datos[i];
         }
