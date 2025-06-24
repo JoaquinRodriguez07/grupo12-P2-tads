@@ -8,4 +8,7 @@ public interface HashTable<K,T> {
     public void borrar(K clave);
     public void reestructurar();
 
+    T obtener(K clave);
+
+    int tamanio();
 }

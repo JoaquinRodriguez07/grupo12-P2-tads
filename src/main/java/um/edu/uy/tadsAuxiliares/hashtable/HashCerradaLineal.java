@@ -105,6 +105,28 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
         }
     }
 
+    @Override
+    public T obtener(K clave) {
+        int hashInicial = hash(clave);
+
+        for (int i = 0; i < capacidad; i++) {
+            int indice = (hashInicial + i) % capacidad;
+            Objeto<K, T> entrada = tabla[indice];
+
+            if (entrada == null) return null;
+            if (entrada.getClave().equals(clave)) return entrada.getValor();
+        }
+
+        return null;
+    }
+
+    @Override
+    public int tamanio() {
+        return size;
+    }
+
+
+
     // Funciones auxiliares
 
     private int siguientePrimo(int n) {
