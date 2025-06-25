@@ -20,9 +20,9 @@ public class CargadorDeMovies {
     private static final Pattern nombreColeccion = Pattern.compile("'name':\\s*'([^']*)'"); //lo puse como final pq no me va a cambar nunca y creo que es buena practica :)
 
     
-    public HashTable<String, Peliculas> cargadorMoviesAHash(String rutaArchivo) {
+    public HashTable<Integer, Peliculas> cargadorMoviesAHash(String rutaArchivo) {
 
-        HashCerradaLineal<String, Peliculas> moviesHashTable = new HashCerradaLineal<>(64200); //cant de peliculas / factor de carga (0.7)
+        HashCerradaLineal<Integer, Peliculas> moviesHashTable = new HashCerradaLineal<>(64200); //cant de peliculas / factor de carga (0.7)
         
         CSVFormat format = CSVFormat.DEFAULT.builder() // Usa el formato CSV por defecto (comas como separadores)
                 .setHeader()             // Indica que la primera línea del CSV es un encabezado.
@@ -50,10 +50,10 @@ public class CargadorDeMovies {
     }
 
 
-    private void procesadoDeLaFila(CSVRecord record, HashCerradaLineal<String, Peliculas> moviesHashTable) {   // Procesa un único registro (fila) del CSV y lo intenta insertar en la tabla hash. El record es la Fila.
+    private void procesadoDeLaFila(CSVRecord record, HashCerradaLineal<Integer, Peliculas> moviesHashTable) {   // Procesa un único registro (fila) del CSV y lo intenta insertar en la tabla hash. El record es la Fila.
         try {
-            String id = record.get("id"); // Obtiene el valor de la columna "id" usando el mapeo del encabezado.
-            if (id == null || id.trim().isEmpty()) {
+            String idPreParse = record.get("id"); // Obtiene el valor de la columna "id" usando el mapeo del encabezado.
+            if (idPreParse == null || idPreParse.trim().isEmpty()) {
                 System.err.println("Advertencia: Registro con ID vacío o nulo. Se ignora registro: " + record.toString());
                 return;
             }
@@ -61,22 +61,22 @@ public class CargadorDeMovies {
             // Extracción de otros Campos
             String titulo = record.get("title");
             String idiomaOriginal = record.get("original_language");
-
+            int idParseada = Integer.parseInt(record.get("id"));
             // 3. Parseo de Campos Complejos con Métodos Auxiliares
 
             // Llamamos a métodos privados dedicados para manejar la lógica de los JSON
             String coleccion = parseCollection(record.get("belongs_to_collection"));
-            double ingresos = parseRevenue(record.get("revenue"), id); // Pasamos el ID para un mejor mensaje de error si falla
+            double ingresos = parseRevenue(record.get("revenue"), idPreParse); // Pasamos el ID para un mejor mensaje de error si falla
 
             // Con todos los datos extraídos y procesados, se crea una nueva instancia de Peliculas.
-            Peliculas pelicula = new Peliculas(id, titulo, idiomaOriginal, coleccion, ingresos);
+            Peliculas pelicula = new Peliculas(idParseada, titulo, idiomaOriginal, coleccion, ingresos);
 
             // Intento de Inserción en la Tabla Hash
             try {
                 moviesHashTable.insertar(pelicula.getId(), pelicula); // Intentamos insertar la película.
             } catch (ElementoYaExistenteException e) {
                 // Si la película ya existe (ID duplicado), se captura la excepción de la tabla hash.
-                System.out.println(" Película con ID " + id + " ya existe. NO SE AGREGA!");
+                System.out.println(" Película con ID " + idPreParse + " ya existe. NO SE AGREGA!");
             }
 
         } catch (IllegalArgumentException e) {

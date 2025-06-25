@@ -7,13 +7,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Peliculas {
-    private String id;
+    private int id;
     private String titulo;
     private String idiomaOriginal;
     private String coleccion;
     private double ingresos;
 
-    public Peliculas(String id, String titulo, String idiomaOriginal, String coleccion, double ingresos) {
+    public Peliculas(int id, String titulo, String idiomaOriginal, String coleccion, double ingresos) {
         this.id = id;
         this.titulo = titulo;
         this.idiomaOriginal = idiomaOriginal;
