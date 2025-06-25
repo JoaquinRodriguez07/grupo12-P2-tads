@@ -22,30 +22,23 @@ public class CargadorDeMovies {
     
     public HashTable<Integer, Peliculas> cargadorMoviesAHash(String rutaArchivo) {
 
-        HashCerradaLineal<Integer, Peliculas> moviesHashTable = new HashCerradaLineal<>(64200); //cant de peliculas / factor de carga (0.7)
-        
+        HashCerradaLineal<Integer, Peliculas> moviesHashTable = new HashCerradaLineal<>(64907); // Usar un primo cercano a 45433/0.7
         CSVFormat format = CSVFormat.DEFAULT.builder() // Usa el formato CSV por defecto (comas como separadores)
                 .setHeader()             // Indica que la primera línea del CSV es un encabezado.
                 .setSkipHeaderRecord(true) // Le dice al parser que no te devuelva la línea del encabezado como un registro de datos.
                 .setIgnoreHeaderCase(true) //  Permite que los nombres de las columnas  no le importe si esta en mayus o minus ( Por ejemplo, "ID" y "id" se tratarán como la misma columna)
                 .setTrim(true)           // Elimina espacios en blanco iniciales/finales de cada campo leído.
                 .build();                // Construye la configuración final del formato.
-        
-        try (Reader in = new FileReader(rutaArchivo); // Abre el archivo CSV para lectura 
-             CSVParser parser = new CSVParser(in, format)) { // Crea el parser de CSV, pasándole el lector y el formato configurado
-           
-           
-            for (CSVRecord record : parser) {  // Iteración sobre cada Registro (Línea) del CSV
+
+        try (Reader in = new FileReader(rutaArchivo);
+             CSVParser parser = new CSVParser(in, format)) {
+            for (CSVRecord record : parser) {
                 procesadoDeLaFila(record, moviesHashTable);
             }
-
         } catch (IOException e) {
-            // Manejo de Errores de Entrada/Salida (I/O)
-            // Si ocurre un error al abrir, leer o cerrar el archivo CSV, esta excepción lo capturará
-            System.err.println("Error de I/O al leer el archivo CSV: " + rutaArchivo + " - " + e.getMessage());
-            
+            System.out.println("Error de I/O al leer el archivo CSV: " + rutaArchivo + " - " + e.getMessage());
+            e.printStackTrace();
         }
-        
         return moviesHashTable;
     }
 
@@ -54,7 +47,7 @@ public class CargadorDeMovies {
         try {
             String idPreParse = record.get("id"); // Obtiene el valor de la columna "id" usando el mapeo del encabezado.
             if (idPreParse == null || idPreParse.trim().isEmpty()) {
-                System.err.println("Advertencia: Registro con ID vacío o nulo. Se ignora registro: " + record.toString());
+                System.out.println("Advertencia: Registro con ID vacío o nulo. Se ignora registro: " + record.toString());
                 return;
             }
 
@@ -82,7 +75,7 @@ public class CargadorDeMovies {
         } catch (IllegalArgumentException e) {
             // 6Manejo de Errores de Columnas Faltantes
             // Esto indica un problema con la estructura del archivo.
-            System.err.println("ERROR: Columna esperada no encontrada en registro. Fila: " + record.getRecordNumber() + ", Datos: " + record.toString() + ". Error: " + e.getMessage());
+            System.out.println("ERROR: Columna esperada no encontrada en registro. Fila: " + record.getRecordNumber() + ", Datos: " + record.toString() + ". Error: " + e.getMessage());
         }
     }
 
@@ -118,7 +111,7 @@ public class CargadorDeMovies {
                 return Double.parseDouble(revenueStr.trim()); // Convierte la cadena a un número double.
             } catch (NumberFormatException e) {
                 // Si la cadena no puede convertirse a double, imprime una advertencia.
-                System.err.println("Advertencia: No se pudo parsear 'revenue' para ID " + movieId + ". Valor: '" + revenueStr + "'. Estableciendo a 0.0");
+                System.out.println("Advertencia: No se pudo parsear 'revenue' para ID " + movieId + ". Valor: '" + revenueStr + "'. Estableciendo a 0.0");
             }
         }
         return 0.0; // Si la cadena es nula, vacía o no parseable, devuelve 0.0.

@@ -1,6 +1,8 @@
 package um.edu.uy.tadsAuxiliares.arraylist;
 
 
+import um.edu.uy.clases.Calificaciones;
+
 public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
     private T[] datos;
     private int tamanio;
@@ -99,4 +101,8 @@ public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
         }
     }
 
+    @Override
+    public int compareTo(MiLista<Calificaciones> o) {
+        return 0;
+    }
 }

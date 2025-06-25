@@ -20,7 +20,6 @@ import java.time.ZoneId;
 
 public class CargadorDeCalificaciones {
 
-
     //igual que en movies
     CSVFormat formatoLectura = CSVFormat.DEFAULT.builder() // Usa el formato CSV por defecto (comas como separadores)
             .setHeader()             // Indica que la primera línea del CSV es un encabezado
@@ -48,11 +47,9 @@ public class CargadorDeCalificaciones {
         return calificacionesHash;
     }
 
-
-
     private void procesadoPorFila(CSVRecord record, HashCerradaLineal<Integer, MiLista<Calificaciones>> calificacionesHash) {
 
-        int userIdStr;
+        int userId;
         int idPelicula;
         double puntaje = 0.0;
         LocalDate fecha = null;
@@ -61,7 +58,7 @@ public class CargadorDeCalificaciones {
 
         try {
             // Extracción y Parseo de Datos
-            userIdStr = Integer.parseInt(record.get(0).trim());
+            userId = Integer.parseInt(record.get(0).trim());
             idPelicula = Integer.parseInt(record.get(1).trim());
             puntaje = Double.parseDouble(record.get(2).trim());
 
@@ -70,7 +67,7 @@ public class CargadorDeCalificaciones {
             fecha = Instant.ofEpochMilli(timeStampLong * 1000L) .atZone(ZoneId.systemDefault()).toLocalDate(); // Importante para la zona horaria
 
             // Con todos los datos extraídos y parseados, creamos el objeto.
-            calificacion = new Calificaciones(userIdStr, idPelicula, puntaje, fecha);
+            calificacion = new Calificaciones(userId, idPelicula, puntaje, fecha);
 
             // Inserción en la tabla hash
             calificacionesParaPelicula = calificacionesHash.obtener(idPelicula);
@@ -95,17 +92,8 @@ public class CargadorDeCalificaciones {
                 calificacionesParaPelicula.add(calificacion);
             }
 
-        } catch (NumberFormatException e) {
-            // Captura errores de parseo de Integer (idPelicula), Double (puntaje), o Long (timeStamp).
-            // Esto es crucial para un CSV que puede tener datos sucios.
-            System.err.println("ERROR de formato numérico en registro. Fila: " + record.getRecordNumber() + ", Datos: " + record.toString() + ". Error: " + e.getMessage());
         } catch (IndexOutOfBoundsException e) {
             // Captura si una fila no tiene suficientes columnas (ej. menos de 4).
             System.err.println("ERROR: Fila con menos columnas de las esperadas. Fila: " + record.getRecordNumber() + ", Datos: " + record.toString() + ". Error: " + e.getMessage());
-        } catch (Exception e) {
-            // Captura cualquier otra excepción inesperada durante el procesamiento de un registro.
-            System.err.println("ERROR totalmente inesperado,  al procesar registro de calificación. Fila: " + record.getRecordNumber() + ", Datos: " + record.toString() + ". Error: " + e.getMessage());
-            e.printStackTrace(); // Imprime el stack trace completo para depuración.
-        }
     }
-}
+}}

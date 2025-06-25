@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Peliculas {
+public class Peliculas implements Comparable<Peliculas> {
     private int id;
     private String titulo;
     private String idiomaOriginal;
@@ -30,5 +30,10 @@ public class Peliculas {
                 ", coleccion='" + coleccion + '\'' +
                 ", ingresos=" + ingresos +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Peliculas o) {
+        return 0;
     }
 }
