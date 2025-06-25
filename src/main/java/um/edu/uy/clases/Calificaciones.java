@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Setter
 @Getter
-public class Calificaciones {
+public class Calificaciones implements Comparable<Calificaciones> {
     private int usuario;
     private int idPelicula;
     private double puntaje;
@@ -21,4 +21,8 @@ public class Calificaciones {
         this.fecha = fecha;
     }
 
+    @Override
+    public int compareTo(Calificaciones o) { //chequear esto de aca
+        return 0;
+    }
 }
