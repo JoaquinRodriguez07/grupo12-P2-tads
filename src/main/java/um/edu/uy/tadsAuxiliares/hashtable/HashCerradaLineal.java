@@ -5,12 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
+import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
+import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<K, T> {
+public class HashCerradaLineal<K extends Comparable<K>, T extends Comparable<T>> implements HashTable<K, T> {
 
     private Objeto<K, T>[] tabla;
     private int capacidad;
@@ -83,7 +85,10 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
 
     @Override
     public void reestructurar() {
+        System.out.println("REESTRUCTURANDO TABLA HASH. Capacidad anterior: " + capacidad + "."); // <-- AÑADE ESTA LÍNEA
         int nuevaCapacidad = siguientePrimo(capacidad * 2);
+        System.out.println("Nueva capacidad (primo): " + nuevaCapacidad); // <-- AÑADE ESTA LÍNEA
+
         Objeto<K, T>[] tablaVieja = tabla;
 
         @SuppressWarnings("unchecked")
@@ -92,17 +97,18 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
         tabla = nuevaTabla;
         int viejaCapacidad = capacidad;
         capacidad = nuevaCapacidad;
-        size = 0;
+        size = 0; // Se resetea el tamaño porque se reinsertarán todos los elementos
 
         for (int i = 0; i < viejaCapacidad; i++) {
             if (tablaVieja[i] != null) {
                 try {
                     insertar(tablaVieja[i].getClave(), tablaVieja[i].getValor());
                 } catch (ElementoYaExistenteException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Error inesperado durante reestructuración: " + e.getMessage(), e);
                 }
             }
         }
+        System.out.println("Reestructuración completada. Elementos reinsertados: " + size); // <-- AÑADE ESTA LÍNEA
     }
 
     @Override
@@ -118,6 +124,17 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
         }
 
         return null;
+    }
+
+
+    public MiLista<T> getValores() { // Devuelve una MiLista de todos los valores
+        MiLista<T> valores = new MiArrayList<>();
+        for (int i = 0; i < capacidad; i++) {
+            if (tabla[i] != null) {
+                valores.add(tabla[i].getValor());
+            }
+        }
+        return valores;
     }
 
     @Override
