@@ -2,23 +2,27 @@ package um.edu.uy.clases;
 
 import lombok.Getter;
 import lombok.Setter;
+import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
+import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 
 
 @Getter
 @Setter
-public class Peliculas implements Comparable<Peliculas> {
+public class Pelicula implements Comparable<Pelicula> {
     private int id;
     private String titulo;
     private String idiomaOriginal;
     private String coleccion;
     private double ingresos;
+    private MiLista<String> generos;
 
-    public Peliculas(int id, String titulo, String idiomaOriginal, String coleccion, double ingresos) {
+    public Pelicula(int id, String titulo, String idiomaOriginal, String coleccion, double ingresos) {
         this.id = id;
         this.titulo = titulo;
         this.idiomaOriginal = idiomaOriginal;
         this.coleccion = coleccion;
         this.ingresos = ingresos;
+        this.generos = new MiArrayList<>();
     }
 
     @Override
@@ -33,7 +37,7 @@ public class Peliculas implements Comparable<Peliculas> {
     }
 
     @Override
-    public int compareTo(Peliculas o) {
+    public int compareTo(Pelicula o) {
         return 0;
     }
 }

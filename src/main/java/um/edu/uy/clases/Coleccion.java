@@ -6,14 +6,19 @@ import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
 
 @Getter
 @Setter
-public class Coleccion {
-    private String id;
+public class Coleccion implements Comparable<Coleccion> {
+    private int id;
     private String titulo;
     private int cantidadPeliculas;
-    private HashTable<String, Peliculas> peliculas;
+    private HashTable<Integer, Pelicula> peliculas;
 
-    public Coleccion(String id, String titulo) {
+    public Coleccion(int id, String titulo) {
         this.id = id;
         this.titulo = titulo;
+    }
+
+    @Override
+    public int compareTo(Coleccion o) {
+        return 0;
     }
 }

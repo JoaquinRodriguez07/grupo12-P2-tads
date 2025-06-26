@@ -1,10 +1,10 @@
 package um.edu.uy.cargadoresDeData;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import um.edu.uy.clases.Persona;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
-import um.edu.uy.tadsAuxiliares.hashtable.HashCerradaLineal;
 import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
 
 import java.io.FileReader;
@@ -16,25 +16,13 @@ import java.util.regex.Pattern;
 
 public class CargadorDeCredits {
 
-    // Expresiones regulares para extraer datos de los strings tipo JSON
-    private static final Pattern CREW_MEMBER_PATTERN = Pattern.compile("\\{'credit_id':.*?\\}");
-    private static final Pattern CAST_MEMBER_PATTERN = Pattern.compile("\\{'cast_id':.*?\\}");
+    private static final Pattern patronBusquedaMember = Pattern.compile("\\{.*?\\}");
+    private static final Pattern patronBusquedaId = Pattern.compile("['\"]id['\"]\\s*:\\s*(\\d+)");
+    private static final Pattern patronNombre = Pattern.compile("['\"]name['\"]\\s*:\\s*(?:'((?:\\\\.|[^'])*)'|\"((?:\\\\.|[^\"])*)\")");
+    private static final Pattern patronJob = Pattern.compile("['\"]job['\"]\\s*:\\s*(?:'((?:\\\\.|[^'])*)'|\"((?:\\\\.|[^\"])*)\")");
+    private static final Pattern patronCharacter = Pattern.compile("['\"]character['\"]\\s*:");
 
-    // Patrones para extraer campos individuales de una entrada de persona
-    private static final Pattern ID_PATTERN = Pattern.compile("'id':\\s*(\\d+)");
-    private static final Pattern NAME_PATTERN = Pattern.compile("'name':\\s*'([^']*)'");
-    private static final Pattern JOB_PATTERN = Pattern.compile("'job':\\s*'([^']*)'");
-
-    /**
-     * Crea una tabla hash, la puebla con datos de actores y directores desde un archivo CSV, y la devuelve.
-     *
-     * @param rutaArchivo La ruta al archivo credits.csv.
-     * @return Una HashTable con todas las personas (actores y directores) cargadas.
-     */
-    public HashTable<Integer, Persona> cargarCreditsAHash(String rutaArchivo) {
-        // Se instancia la tabla hash aquí dentro, con una capacidad inicial grande y prima.
-        HashTable<Integer, Persona> personasHashTable = new HashCerradaLineal<>(263471);
-
+    public void cargarCredits(String rutaArchivo, HashTable<Integer, Persona> personasHashTable) {
         CSVFormat format = CSVFormat.DEFAULT.builder()
                 .setHeader()
                 .setSkipHeaderRecord(true)
@@ -42,7 +30,6 @@ public class CargadorDeCredits {
                 .setTrim(true)
                 .build();
 
-        // Usamos FileReader con UTF-8 para leer correctamente caracteres especiales como en 'PÃ¡l FejÅ‘s'
         try (Reader in = new FileReader(rutaArchivo, StandardCharsets.UTF_8);
              CSVParser parser = new CSVParser(in, format)) {
 
@@ -51,104 +38,91 @@ public class CargadorDeCredits {
             }
 
         } catch (IOException e) {
-            System.err.println("ERROR de I/O al leer el archivo CSV de créditos: " + e.getMessage());
+            System.err.println("Error no puede leer CSV: " + e.getMessage());
             e.printStackTrace();
         }
-
-        // Se devuelve la tabla hash ya poblada.
-        return personasHashTable;
     }
 
-    /**
-     * Procesa una única fila del CSV, extrayendo el ID de la película y los datos de cast y crew.
-     */
     private void procesadoPorFila(CSVRecord record, HashTable<Integer, Persona> personasHashTable) {
         try {
             int movieId = Integer.parseInt(record.get("id"));
             String castData = record.get("cast");
             String crewData = record.get("crew");
 
-            // Procesamos la columna 'crew' para encontrar al director
             procesarCrew(crewData, movieId, personasHashTable);
-
-            // Procesamos la columna 'cast' para encontrar a los actores
             procesarCast(castData, movieId, personasHashTable);
 
-        } catch (NumberFormatException e) {
-            System.err.println("ERROR: No se pudo parsear el ID de la película en el registro: " + record.getRecordNumber());
+        } catch (NumberFormatException ignored) {
         } catch (IllegalArgumentException e) {
-            System.err.println("ERROR: Columna esperada ('id', 'cast' o 'crew') no encontrada en el registro: " + record.getRecordNumber());
+            System.err.println("ERROR: Columna esperada no encontrada en el registro: " + record.getRecordNumber());
         }
     }
 
-    /**
-     * Parsea la columna 'crew' para encontrar únicamente a la persona con el trabajo ('job') de 'Director'.
-     * Si la encuentra, la añade o actualiza en la tabla hash de personas.
-     */
     private void procesarCrew(String crewData, int movieId, HashTable<Integer, Persona> personasHashTable) {
-        if (crewData == null || crewData.isEmpty()) return;
+        if (crewData == null || crewData.isEmpty() || crewData.equals("[]")) return;
 
-        Matcher crewMatcher = CREW_MEMBER_PATTERN.matcher(crewData);
+        Matcher crewMatcher = patronBusquedaMember.matcher(crewData);
         while (crewMatcher.find()) {
             String crewMemberString = crewMatcher.group();
 
-            Matcher jobMatcher = JOB_PATTERN.matcher(crewMemberString);
-            // Solo nos interesa si el trabajo es 'Director'
-            if (jobMatcher.find() && "Director".equals(jobMatcher.group(1))) {
-                Matcher idMatcher = ID_PATTERN.matcher(crewMemberString);
-                Matcher nameMatcher = NAME_PATTERN.matcher(crewMemberString);
+            Matcher jobMatcher = patronJob.matcher(crewMemberString);
+            if (jobMatcher.find()) {
+                String job = jobMatcher.group(1) != null ? jobMatcher.group(1) : jobMatcher.group(2);
+                if ("Director".equalsIgnoreCase(job)) {
+                    Matcher idMatcher = patronBusquedaId.matcher(crewMemberString);
+                    Matcher nameMatcher = patronNombre.matcher(crewMemberString);
 
-                if (idMatcher.find() && nameMatcher.find()) {
-                    int personaId = Integer.parseInt(idMatcher.group(1));
-                    String nombre = nameMatcher.group(1);
+                    if (idMatcher.find() && nameMatcher.find()) {
+                        int personaId = Integer.parseInt(idMatcher.group(1));
+                        String nombre = nameMatcher.group(1) != null ? nameMatcher.group(1) : nameMatcher.group(2);
 
-                    // Reutiliza o crea la persona
-                    Persona director = personasHashTable.obtener(personaId);
-                    if (director == null) {
-                        director = new Persona(personaId, nombre);
-                        try {
-                            personasHashTable.insertar(personaId, director);
-                        } catch (ElementoYaExistenteException e) {
-                            System.err.println("Error de concurrencia/lógica al insertar director: " + personaId);
+                        if (personaId <= 0 || nombre == null || nombre.trim().isEmpty()
+                                || nombre.equalsIgnoreCase("None") || nombre.equalsIgnoreCase("null")) {
+                            continue; // Salteamos inválidos
                         }
+
+                        Persona director = personasHashTable.obtener(personaId);
+                        if (director == null) {
+                            director = new Persona(personaId, nombre);
+                            try {
+                                personasHashTable.insertar(personaId, director);
+                            } catch (ElementoYaExistenteException ignored) {}
+                        }
+                        director.getIdsPeliculasDirigidas().add(movieId);
                     }
-                    // Añadimos la película a su lista de películas dirigidas
-                    director.getIdsPeliculasDirigidas().add(movieId);
-                    break; // Asumimos un solo director por película para simplificar
                 }
             }
         }
     }
 
-    /**
-     * Parsea la columna 'cast' para encontrar a todos los actores.
-     * Para cada uno, lo añade o actualiza en la tabla hash de personas.
-     */
     private void procesarCast(String castData, int movieId, HashTable<Integer, Persona> personasHashTable) {
-        if (castData == null || castData.isEmpty()) return;
+        if (castData == null || castData.isEmpty() || castData.equals("[]")) return;
 
-        Matcher castMatcher = CAST_MEMBER_PATTERN.matcher(castData);
+        Matcher castMatcher = patronBusquedaMember.matcher(castData);
         while (castMatcher.find()) {
             String castMemberString = castMatcher.group();
 
-            Matcher idMatcher = ID_PATTERN.matcher(castMemberString);
-            Matcher nameMatcher = NAME_PATTERN.matcher(castMemberString);
+            if (!patronCharacter.matcher(castMemberString).find()) continue;
+
+            Matcher idMatcher = patronBusquedaId.matcher(castMemberString);
+            Matcher nameMatcher = patronNombre.matcher(castMemberString);
 
             if (idMatcher.find() && nameMatcher.find()) {
                 int personaId = Integer.parseInt(idMatcher.group(1));
-                String nombre = nameMatcher.group(1).replace("\"", ""); // Limpia comillas dobles si existen
+                String nombre = nameMatcher.group(1) != null ? nameMatcher.group(1) : nameMatcher.group(2);
 
-                // Reutiliza o crea la persona
+                if (personaId <= 0 || nombre == null || nombre.trim().isEmpty()
+                        || nombre.equalsIgnoreCase("None") || nombre.equalsIgnoreCase("null")) {
+                    continue; // Salteamos inválidos
+                }
+
                 Persona actor = personasHashTable.obtener(personaId);
                 if (actor == null) {
                     actor = new Persona(personaId, nombre);
                     try {
                         personasHashTable.insertar(personaId, actor);
-                    } catch (ElementoYaExistenteException e) {
-                        // No debería ocurrir
-                    }
+                    } catch (ElementoYaExistenteException ignored) {}
                 }
-                // Añadimos la película a su lista de películas en las que actuó
                 actor.getIdsPeliculasActuo().add(movieId);
             }
         }

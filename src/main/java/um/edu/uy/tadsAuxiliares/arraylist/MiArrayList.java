@@ -1,7 +1,7 @@
 package um.edu.uy.tadsAuxiliares.arraylist;
 
 
-import um.edu.uy.clases.Calificaciones;
+import um.edu.uy.clases.Calificacion;
 
 public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
     private T[] datos;
@@ -102,7 +102,7 @@ public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
     }
 
     @Override
-    public int compareTo(MiLista<Calificaciones> o) {
+    public int compareTo(MiLista<Calificacion> o) {
         return 0;
     }
 }
