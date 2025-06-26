@@ -1,6 +1,8 @@
 package um.edu.uy.tadsAuxiliares.arraylist;
 
-public interface MiLista<T> {
+import um.edu.uy.clases.Calificaciones;
+
+public interface MiLista<T> extends Comparable<MiLista<Calificaciones>> {
     void add(T elemento);
     T get(int indice);
     void set(int indice, T elemento);
