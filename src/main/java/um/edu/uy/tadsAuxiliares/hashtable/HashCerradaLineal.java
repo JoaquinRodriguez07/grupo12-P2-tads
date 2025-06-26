@@ -163,6 +163,18 @@ public class HashCerradaLineal<K extends Comparable<K>, T extends Comparable<T>>
         return true;
     }
 
+
+    //este metodo agarra todas las claves de la hashtable y los pone en una arraylist
+    public MiLista<K> getClaves() {
+        MiLista<K> claves = new MiArrayList<>();
+        for (int i = 0; i < capacidad; i++) {
+            if (tabla[i] != null) {
+                claves.add(tabla[i].getClave());
+            }
+        }
+        return claves;
+    }
+
     private int hash(K clave) {
         return Math.abs(clave.hashCode()) % capacidad;
     }
