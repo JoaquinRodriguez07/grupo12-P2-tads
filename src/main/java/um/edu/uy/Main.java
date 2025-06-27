@@ -12,135 +12,58 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        boolean cierre = true;
+        System.out.println("Iniciando prueba de carga de datos...");
 
-        // Se inicializa el contenedor de datos con capacidades de número primo
-        DataParaCargadores datos = new DataParaCargadores(180001, 64801, 305009, 60007);
+        // 1. Se inicializa el contenedor de datos con capacidades de número primo
+        // Los valores son: usuarios, peliculas, personas, colecciones, peliculasConRatings
+        DataParaCargadores datos = new DataParaCargadores(180001, 64801, 305009, 60007, 27001);
 
-        boolean datosCargados = false;
-        long tiempoTotalCargaMs = 0;
+        long startTime = System.currentTimeMillis();
 
-        while (cierre) {
-            System.out.println("\nMenu principal");
-            System.out.println("       Seleccione la opción que desee:");
-            System.out.println("    1. Carga de datos");
-            System.out.println("    2. Ejecutar consultas");
-            System.out.println("    3. Salir");
-            System.out.print("Ingrese su opción: ");
-            String respuesta = scanner.nextLine().trim();
-
-            switch (respuesta) {
-                case "1":
-                    if (datosCargados) {
-                        System.out.println("¡Los datos ya fueron cargados previamente! Tiempo de la última carga: " + tiempoTotalCargaMs + " ms.");
-                    } else {
-                        System.out.println("Iniciando carga de datos...");
-                        long startTime = System.currentTimeMillis();
-
-                        // --- Carga de Películas y Colecciones ---
-                        CargadorDeMovies moviesLoader = new CargadorDeMovies();
-                        String moviesCsvFile = "movies_metadata.csv";
-                        try {
-                            // SOLUCIÓN: Se pasan las HashTables del contenedor al método del cargador.
-                            // El método es void, no devuelve nada, solo modifica las tablas.
-                            moviesLoader.cargadorMoviesAHash(moviesCsvFile, datos.getPeliculas(), datos.getColecciones());
-                            System.out.println("  - Películas únicas cargadas: " + datos.getPeliculas().tamanio() + ".");
-                            System.out.println("  - Colecciones únicas cargadas: " + datos.getColecciones().tamanio() + ".");
-                        } catch (Exception e) {
-                            System.out.println("  - ERROR al cargar películas: " + e.getMessage());
-                            e.printStackTrace();
-                            break; // Detener la carga si falla
-                        }
-
-                        // --- Carga de Calificaciones y Usuarios ---
-                        CargadorDeCalificaciones calificacionesLoader = new CargadorDeCalificaciones();
-                        String ratingsCsvFile = "ratings_1mm.csv"; // Usar el archivo completo
-                        try {
-                            // SOLUCIÓN: Se pasan la MiLista y la HashTable al método del cargador.
-                            calificacionesLoader.cargarCalificaciones(ratingsCsvFile, datos.getCalificaciones(), datos.getUsuarios());
-                            System.out.println("  - Total de calificaciones individuales cargadas: " + datos.getCalificaciones().size() + ".");
-                            System.out.println("  - Usuarios únicos cargados: " + datos.getUsuarios().tamanio() + ".");
-                        } catch (Exception e) {
-                            System.out.println("  - ERROR al cargar calificaciones: " + e.getMessage());
-                            e.printStackTrace();
-                            break;
-                        }
-
-                        // --- Carga de Actores y Directores ---
-                        CargadorDeCredits creditsLoader = new CargadorDeCredits();
-                        String creditsCsvFile = "credits.csv";
-                        try {
-                            // SOLUCIÓN: Se pasa la HashTable de personas al cargador.
-                            creditsLoader.cargarCredits(creditsCsvFile, datos.getPersonas());
-                            System.out.println("  - Personas únicas (Actores/Directores) cargadas: " + datos.getPersonas().tamanio() + ".");
-
-                            // --- Conteo de Actores y Directores ---
-                            long totalActores = 0;
-                            long totalDirectores = 0;
-                            HashCerradaLineal<Integer, Persona> tempPersonasHash = (HashCerradaLineal<Integer, Persona>) datos.getPersonas();
-                            MiLista<Persona> todasLasPersonas = tempPersonasHash.getValores();
-
-                            for (int i = 0; i < todasLasPersonas.size(); i++) {
-                                Persona p = todasLasPersonas.get(i);
-                                if (p.isActor()) totalActores++;
-                                if (p.isDirector()) totalDirectores++;
-                            }
-
-                            System.out.println("  - Total de actores cargados: " + totalActores + ".");
-                            System.out.println("  - Total de directores cargados: " + totalDirectores + ".");
-                        } catch (Exception e) {
-                            System.out.println("  - ERROR al cargar créditos: " + e.getMessage());
-                            e.printStackTrace();
-                            break;
-                        }
-
-                        long endTime = System.currentTimeMillis();
-                        tiempoTotalCargaMs = endTime - startTime;
-                        datosCargados = true;
-                        System.out.println("Carga de datos exitosa. Tiempo total de ejecución: " + tiempoTotalCargaMs + " ms.");
-                    }
-                    break;
-
-                case "2":
-                    if (!datosCargados) {
-                        System.out.println("ERROR: Los datos no han sido cargados. Por favor, seleccione la opción 1 primero.");
-                        break;
-                    }
-                    // El menú de consultas se manejaría aquí...
-                    System.out.println("Menú de consultas no implementado.");
-                    break;
-
-                case "3":
-                    cierre = false;
-                    System.out.println("Saliendo del programa. ¡Adiós!");
-                    break;
-
-                default:
-                    System.out.println("Opción no válida. Intente de nuevo.");
-                    break;
-            }
+        // --- Carga de Películas y Colecciones ---
+        try {
+            CargadorDeMovies moviesLoader = new CargadorDeMovies();
+            moviesLoader.cargadorMoviesAHash("movies_metadata.csv", datos.getPeliculas(), datos.getColecciones());
+            System.out.println("  [OK] Carga de Películas y Colecciones finalizada.");
+        } catch (Exception e) {
+            System.out.println("  [ERROR] al cargar películas: " + e.getMessage());
+            e.printStackTrace();
+            return; // Detener la prueba si falla
         }
-        scanner.close();
-    }
-    private static void procesarCalificacionesPorGenero(DataParaCargadores cargadores){
-        MiLista<Calificacion> calificacionesList = cargadores.getCalificaciones();
-        for (int i = 0; i < calificacionesList.size(); i++) {
-            Calificacion calificacion = calificacionesList.get(i);
 
-            Usuario usuario = cargadores.getUsuarios().obtener(calificacion.getUsuario());
-            Pelicula pelicula = cargadores.getPeliculas().obtener(calificacion.getIdPelicula());
-
-            if (usuario != null && pelicula != null) {
-                MiLista<String> generosPelicula = pelicula.getGeneros();
-
-                if (generosPelicula != null) {
-                    for (int j = 0; j < generosPelicula.size(); j++) {
-                        String genero = generosPelicula.get(j);
-                        usuario.agregarCalificacionPorGenero(genero);
-                    }
-                }
-            }
+        // --- Carga de Calificaciones y Usuarios ---
+        try {
+            CargadorDeCalificaciones calificacionesLoader = new CargadorDeCalificaciones();
+            calificacionesLoader.cargarCalificaciones("ratings_1mm.csv", datos.getCalificaciones(), datos.getCalificacionesPorPelicula(), datos.getUsuarios());
+            System.out.println("  [OK] Carga de Calificaciones y Usuarios finalizada.");
+        } catch (Exception e) {
+            System.out.println("  [ERROR] al cargar calificaciones: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
+
+        // --- Carga de Actores y Directores ---
+        try {
+            CargadorDeCredits creditsLoader = new CargadorDeCredits();
+            creditsLoader.cargarCredits("credits.csv", datos.getPersonas());
+            System.out.println("  [OK] Carga de Créditos finalizada.");
+        } catch (Exception e) {
+            System.out.println("  [ERROR] al cargar créditos: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
+
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+
+        System.out.println("\n--- Resumen de la Carga ---");
+        System.out.println("Tiempo total de ejecución: " + totalTime + " ms.");
+        System.out.println("---------------------------");
+        System.out.println("Total de Películas cargadas: " + datos.getPeliculas().tamanio());
+        System.out.println("Total de Colecciones cargadas: " + datos.getColecciones().tamanio());
+        System.out.println("Total de Personas (actores/directores) cargadas: " + datos.getPersonas().tamanio());
+        System.out.println("Total de Usuarios únicos cargados: " + datos.getUsuarios().tamanio());
+        System.out.println("Total de Calificaciones individuales cargadas: " + datos.getCalificaciones().size());
+        System.out.println("Total de Películas con calificaciones: " + datos.getCalificacionesPorPelicula().tamanio());
     }
 }

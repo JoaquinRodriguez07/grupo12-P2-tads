@@ -128,6 +128,7 @@ public class HashCerradaLineal<K extends Comparable<K>, T extends Comparable<T>>
     }
 
 
+    @Override
     public MiLista<T> getValores() { // Devuelve una MiLista de todos los valores
         MiLista<T> valores = new MiArrayList<>();
         for (int i = 0; i < capacidad; i++) {

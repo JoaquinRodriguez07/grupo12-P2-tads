@@ -11,20 +11,27 @@ import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
 @Setter
 public class DataParaCargadores {
 
-    private MiLista<Calificacion> calificaciones;
-    private HashTable<Integer,Usuario> usuarios;
-    private HashTable<Integer, Pelicula> peliculas;
-    private HashTable<Integer, Persona>  personas;
-    private HashTable<Integer, Coleccion> colecciones;
+    // Estructuras de datos principales
+    private final HashTable<Integer, Pelicula> peliculas;
+    private final HashTable<Integer, Coleccion> colecciones;
+    private final HashTable<Integer, Persona> personas;
+    private final HashTable<Integer, Usuario> usuarios;
 
+    // --- Estructuras Clave para Calificaciones ---
 
-    public DataParaCargadores(int capacidadHashUsuarios, int capacidadHashPeliculas, int capacidadPersonas,  int capacidadColecciones) {
-        this.calificaciones = new MiArrayList<>();
-        this.usuarios = new HashCerradaLineal<>(capacidadHashUsuarios);
-        this.peliculas = new HashCerradaLineal<>(capacidadHashPeliculas);
+    // 1. Una lista con TODAS las calificaciones. Útil para la función 5.
+    private final MiLista<Calificacion> calificaciones;
+
+    // 2. Una tabla hash para agrupar calificaciones por película. Esencial para la eficiencia de las consultas 1, 2 y 4.
+    private final HashTable<Integer, MiLista<Calificacion>> calificacionesPorPelicula;
+
+    public DataParaCargadores(int capacidadUsuarios, int capacidadPeliculas, int capacidadPersonas, int capacidadColecciones, int capacidadPeliculasConRatings) {
+        this.usuarios = new HashCerradaLineal<>(capacidadUsuarios);
+        this.peliculas = new HashCerradaLineal<>(capacidadPeliculas);
         this.personas = new HashCerradaLineal<>(capacidadPersonas);
         this.colecciones = new HashCerradaLineal<>(capacidadColecciones);
+
+        this.calificaciones = new MiArrayList<>();
+        this.calificacionesPorPelicula = new HashCerradaLineal<>(capacidadPeliculasConRatings);
     }
-
 }
-
