@@ -13,7 +13,7 @@ import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class HashCerradaLineal<K extends Comparable<K>, T extends Comparable<T>> implements HashTable<K, T> {
+public class HashCerradaLineal<K extends Comparable<K>, T > implements HashTable<K, T> {
 
     private Objeto<K, T>[] tabla;
     private int capacidad;

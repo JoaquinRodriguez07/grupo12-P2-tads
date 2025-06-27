@@ -3,7 +3,7 @@ package um.edu.uy.tadsAuxiliares.arraylist;
 
 import um.edu.uy.clases.Calificacion;
 
-public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
+public class MiArrayList<T> implements MiLista<T> {
     private T[] datos;
     private int tamanio;
     private static final int CAPACIDAD_INICIAL = 10;
