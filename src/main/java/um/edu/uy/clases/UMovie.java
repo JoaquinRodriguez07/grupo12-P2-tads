@@ -108,7 +108,7 @@ public class UMovie {
     public void funcion2(){
         long startTime = System.currentTimeMillis();
         MiLista<Integer> idsPeliculas = peliculasHashTable.getClaves();
-        MiArrayList<Pelicula> top10 = new MiArrayList<>();
+        MiLista<Pelicula> top10 = new MiArrayList<>();
         MiLista<Integer> calificaciones = calificacionesHashTable.getClaves();
 
         for (int i = 0; i < idsPeliculas.size(); i++) {
