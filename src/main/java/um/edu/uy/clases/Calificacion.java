@@ -9,13 +9,13 @@ import java.time.LocalDate;
 @Setter
 @Getter
 @EqualsAndHashCode //esto creo que nos va asolucioanr la vida para comparar cosas en las funciones pero no se
-public class Calificaciones implements Comparable<Calificaciones> {
+public class Calificacion implements Comparable<Calificacion> {
     private int usuario;
     private int idPelicula;
     private double puntaje;
     private LocalDate fecha;
 
-    public Calificaciones(int usuario, int idPelicula, double puntaje, LocalDate fecha) {
+    public Calificacion(int usuario, int idPelicula, double puntaje, LocalDate fecha) {
         this.usuario = usuario;
         this.idPelicula = idPelicula;
         this.puntaje = puntaje;
@@ -23,7 +23,7 @@ public class Calificaciones implements Comparable<Calificaciones> {
     }
 
     @Override
-    public int compareTo(Calificaciones otra) {
+    public int compareTo(Calificacion otra) {
         // Criterio de comparación:
         // 1. Primero, compara por idPelicula (el ID de la película)
         int idPeliculaComparison = Integer.compare(this.idPelicula, otra.idPelicula);
