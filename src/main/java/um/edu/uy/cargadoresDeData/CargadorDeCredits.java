@@ -66,7 +66,7 @@ public class CargadorDeCredits {
 
             if (jobMatcher.find()) {
                 String job;
-                // Bloque if-else para obtener el valor de 'job'
+
                 if (jobMatcher.group(1) != null) {
                     job = jobMatcher.group(1);
                 } else {

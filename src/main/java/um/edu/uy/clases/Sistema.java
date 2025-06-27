@@ -8,10 +8,12 @@ import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 import um.edu.uy.tadsAuxiliares.hashtable.HashCerradaLineal;
 import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
 
+import java.time.Month;
+
 public class Sistema {
 
     private final DataParaCargadores datos;
-
+    private boolean generosProcesados = false; // lento pero va a funcionar
 
     public Sistema(DataParaCargadores datos) {
         this.datos = datos;
@@ -355,6 +357,96 @@ public class Sistema {
         }
     }
 
+    //hacer funcion 5
+
+    public void funcion6() {
+        System.out.println("\n--- Ejecutando Consulta 6: Usuarios con más Calificaciones por Género ---");
+        long startTime = System.currentTimeMillis();
+
+        if (!generosProcesados) {
+            prepararCalificacionesPorGeneroParaUsuarios();
+            generosProcesados = true;
+        }
+
+        // 2. Contar la popularidad de cada género (basado en el número de calificaciones)
+        HashCerradaLineal<String, Integer> conteoGeneros = new HashCerradaLineal<>(50);
+        MiLista<Calificacion> todasLasCalificaciones = datos.getCalificaciones();
+        for (int i = 0; i < todasLasCalificaciones.size(); i++) {
+            Calificacion calificacion = todasLasCalificaciones.get(i);
+            Pelicula pelicula = datos.getPeliculas().obtener(calificacion.getIdPelicula());
+            if (pelicula != null) {
+                MiLista<String> generos = pelicula.getGeneros();
+                for (int j = 0; j < generos.size(); j++) {
+                    String genero = generos.get(j);
+                    Integer count = conteoGeneros.obtener(genero);
+                    try {
+                        if (count == null) {
+                            conteoGeneros.insertar(genero, 1);
+                        } else {
+                            conteoGeneros.borrar(genero);
+                            conteoGeneros.insertar(genero, count + 1);
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        MiLista<String> listaGeneros = conteoGeneros.getClaves();
+        for (int i = 0; i < listaGeneros.size() - 1; i++) {
+            for (int j = 0; j < listaGeneros.size() - i - 1; j++) {
+                if (conteoGeneros.obtener(listaGeneros.get(j)) < conteoGeneros.obtener(listaGeneros.get(j + 1))) {
+                    String temp = listaGeneros.get(j);
+                    listaGeneros.set(j, listaGeneros.get(j + 1));
+                    listaGeneros.set(j + 1, temp);
+                }
+            }
+        }
+
+        System.out.println("\n-- Top Usuarios por Género (Top 10 Géneros más Vistos) --");
+        int limite = Math.min(10, listaGeneros.size());
+        MiLista<Usuario> todosLosUsuarios = datos.getUsuarios().getValores();
+
+        for (int i = 0; i < limite; i++) {
+            String generoTop = listaGeneros.get(i);
+            Usuario usuarioTop = null;
+            int maxReviews = -1;
+
+            for(int j = 0; j < todosLosUsuarios.size(); j++){
+                Usuario usuarioActual = todosLosUsuarios.get(j);
+                Integer reviewsDeGenero = usuarioActual.getCalificacionesPorGenero().obtener(generoTop);
+                if(reviewsDeGenero != null && reviewsDeGenero > maxReviews){
+                    maxReviews = reviewsDeGenero;
+                    usuarioTop = usuarioActual;
+                }
+            }
+
+            if (usuarioTop != null) {
+                System.out.printf("%d, %s, %d\n",
+                        usuarioTop.getId(), generoTop, maxReviews);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Tiempo de ejecución de la consulta: " + (endTime - startTime) + "ms");
+    }
+
+    private void prepararCalificacionesPorGeneroParaUsuarios() {
+        System.out.println("  (Procesando géneros de usuarios por primera vez");
+        MiLista<Usuario> todosLosUsuarios = datos.getUsuarios().getValores();
+        for (int i = 0; i < todosLosUsuarios.size(); i++) {
+            Usuario usuario = todosLosUsuarios.get(i);
+            MiLista<Calificacion> calificacionesDelUsuario = usuario.getCalificacionesDelUsuario();
+            for (int j = 0; j < calificacionesDelUsuario.size(); j++) {
+                Calificacion calificacion = calificacionesDelUsuario.get(j);
+                Pelicula pelicula = datos.getPeliculas().obtener(calificacion.getIdPelicula());
+                if (pelicula != null) {
+                    MiLista<String> generos = pelicula.getGeneros();
+                    for (int k = 0; k < generos.size(); k++) {
+                        usuario.agregarCalificacionPorGenero(generos.get(k));
+                    }
+                }
+            }
+        }
+    }
 
 
 }
