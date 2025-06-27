@@ -123,4 +123,24 @@ public class Main {
         }
         scanner.close();
     }
+    private static void procesarCalificacionesPorGenero(DataParaCargadores cargadores){
+        MiLista<Calificacion> calificacionesList = cargadores.getCalificaciones();
+        for (int i = 0; i < calificacionesList.size(); i++) {
+            Calificacion calificacion = calificacionesList.get(i);
+
+            Usuario usuario = cargadores.getUsuarios().obtener(calificacion.getUsuario());
+            Pelicula pelicula = cargadores.getPeliculas().obtener(calificacion.getIdPelicula());
+
+            if (usuario != null && pelicula != null) {
+                MiLista<String> generosPelicula = pelicula.getGeneros();
+
+                if (generosPelicula != null) {
+                    for (int j = 0; j < generosPelicula.size(); j++) {
+                        String genero = generosPelicula.get(j);
+                        usuario.agregarCalificacionPorGenero(genero);
+                    }
+                }
+            }
+        }
+    }
 }

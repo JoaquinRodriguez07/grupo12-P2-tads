@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import um.edu.uy.excepciones.ElementoNoExistenteException;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
 import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
 import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
@@ -142,6 +143,22 @@ public class HashCerradaLineal<K extends Comparable<K>, T extends Comparable<T>>
         return size;
     }
 
+    public void actualizar(K clave, T nuevoValor) throws ElementoNoExistenteException { //esta funcion va a ayudar con el tema de los generos
+        int hashInicial = hash(clave);
+        for (int i = 0; i < capacidad; i++) {
+            int indice = (hashInicial + i) % capacidad;
+            Objeto<K, T> entrada = tabla[indice];
+            if (entrada == null){
+                throw new ElementoNoExistenteException("La clave que se proporciono no tiene un valor que actualizar");
+            }
+            if (entrada.getClave().equals(clave)){
+                entrada.setValor(nuevoValor);
+                return;
+            }
+        }
+        throw new ElementoNoExistenteException("La clave no existe");
+    }
+
 
 
     // Funciones auxiliares
@@ -161,6 +178,18 @@ public class HashCerradaLineal<K extends Comparable<K>, T extends Comparable<T>>
             if (n % i == 0) return false;
         }
         return true;
+    }
+
+
+    //este metodo agarra todas las claves de la hashtable y los pone en una arraylist
+    public MiLista<K> getClaves() {
+        MiLista<K> claves = new MiArrayList<>();
+        for (int i = 0; i < capacidad; i++) {
+            if (tabla[i] != null) {
+                claves.add(tabla[i].getClave());
+            }
+        }
+        return claves;
     }
 
     private int hash(K clave) {

@@ -12,10 +12,14 @@ public class Coleccion implements Comparable<Coleccion> {
     private String titulo;
     private int cantidadPeliculas; // Este campo necesitará ser actualizado si se usa
     private HashTable<Integer, Pelicula> peliculas;
+    private double ingresos;
 
     public Coleccion(int id, String titulo) {
         this.id = id;
         this.titulo = titulo;
+        this.cantidadPeliculas = 0;
+        peliculas = new HashCerradaLineal<>();
+        this.ingresos = 0;
         this.peliculas = new HashCerradaLineal<>(10);
     }
 

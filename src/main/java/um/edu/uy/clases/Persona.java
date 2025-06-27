@@ -14,6 +14,7 @@ public class Persona implements Comparable<Persona>{
     private String nombre;
     private MiLista<Integer> idsPeliculasDirigidas;
     private MiLista<Integer> idsPeliculasActuo;
+    private double calificacion;
 
 
 
@@ -22,6 +23,7 @@ public class Persona implements Comparable<Persona>{
         this.nombre = nombre;
         this.idsPeliculasDirigidas = new MiArrayList<>();
         this.idsPeliculasActuo = new MiArrayList<>();
+        this.calificacion = 0;
     }
 
 
