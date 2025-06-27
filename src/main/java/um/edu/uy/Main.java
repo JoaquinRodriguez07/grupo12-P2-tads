@@ -56,7 +56,7 @@ public class Main {
                         String ratingsCsvFile = "ratings.csv"; // Usar el archivo completo
                         try {
                             // SOLUCIÓN: Se le pasa la MiLista al cargador para que la llene
-                            calificacionesLoader.cargarCalificacionesAHash(ratingsCsvFile, cargadores.getCalificaciones(), cargadores.getUsuarios());
+                            calificacionesLoader.cargarCalificaciones(ratingsCsvFile, cargadores.getCalificaciones(), cargadores.getUsuarios());
                             System.out.println("  - Total de calificaciones individuales cargadas: " + cargadores.getCalificaciones().size() + ".");
                         } catch (Exception e) {
                             System.out.println("  - ERROR al cargar calificaciones: " + e.getMessage());
@@ -116,5 +116,25 @@ public class Main {
             }
         }
         scanner.close();
+    }
+    private static void procesarCalificacionesPorGenero(DataParaCargadores cargadores){
+        MiLista<Calificacion> calificacionesList = cargadores.getCalificaciones();
+        for (int i = 0; i < calificacionesList.size(); i++) {
+            Calificacion calificacion = calificacionesList.get(i);
+
+            Usuario usuario = cargadores.getUsuarios().obtener(calificacion.getUsuario());
+            Pelicula pelicula = cargadores.getPeliculas().obtener(calificacion.getIdPelicula());
+
+            if (usuario != null && pelicula != null) {
+                MiLista<String> generosPelicula = pelicula.getGeneros();
+
+                if (generosPelicula != null) {
+                    for (int j = 0; j < generosPelicula.size(); j++) {
+                        String genero = generosPelicula.get(j);
+                        usuario.agregarCalificacionPorGenero(genero);
+                    }
+                }
+            }
+        }
     }
 }

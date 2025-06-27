@@ -2,6 +2,7 @@ package um.edu.uy.clases;
 
 import lombok.Getter;
 import lombok.Setter;
+import um.edu.uy.excepciones.ElementoYaExistenteException;
 import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
 import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 import um.edu.uy.tadsAuxiliares.hashtable.HashCerradaLineal;
@@ -12,14 +13,17 @@ public class UMovie {
     HashCerradaLineal<Integer, MiLista<Calificacion>> calificacionesHashTable;
     HashCerradaLineal<Integer, Persona> personasHashTable;
     HashCerradaLineal<Integer, Coleccion> coleccionesHashTable;
+    HashCerradaLineal<Integer, Usuario> usuariosHashTable;
 
     public UMovie(HashCerradaLineal<Integer, Pelicula> peliculasHashTable,
                   HashCerradaLineal<Integer, MiLista<Calificacion>> calificacionesHashTable,
-                  HashCerradaLineal<Integer, Persona> personasHashTable, HashCerradaLineal<Integer, Coleccion> coleccionesHashTable) {
+                  HashCerradaLineal<Integer, Persona> personasHashTable, HashCerradaLineal<Integer, Coleccion> coleccionesHashTable,
+                  HashCerradaLineal<Integer, Usuario> usuariosHashTable) {
         this.peliculasHashTable = peliculasHashTable;
         this.calificacionesHashTable = calificacionesHashTable;
         this.personasHashTable = personasHashTable;
         this.coleccionesHashTable = coleccionesHashTable;
+        this.usuariosHashTable = usuariosHashTable;
     }
 
     public void funcion1(){
@@ -105,6 +109,8 @@ public class UMovie {
         }
     }
 
+    //----------------------------------------------------------------------------------------------------------------------
+
     public void funcion2(){
         long startTime = System.currentTimeMillis();
         MiLista<Integer> idsPeliculas = peliculasHashTable.getClaves();
@@ -158,6 +164,9 @@ public class UMovie {
         }
         return sumaCalificaciones / calificaciones.size();
     }
+
+    //----------------------------------------------------------------------------------------------------------------------
+
 
     public void funcion3(){
         long startTime = System.currentTimeMillis();
@@ -220,6 +229,8 @@ public class UMovie {
         long endTime = System.currentTimeMillis();
         System.out.println("Tiempo de ejecución de consulta: " + (endTime - startTime) + "ms");
     }
+
+    //----------------------------------------------------------------------------------------------------------------------
 
     public void funcion4(){
         long startTime = System.currentTimeMillis();
@@ -300,5 +311,21 @@ public class UMovie {
             double medio2 = calificaciones.get(n / 2);
             return (medio1 + medio2) / 2; //si es par, entonces agarro los dos valores que serian el medio, y hago la mediana con esos
         }
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+
+    public void funcion6() throws ElementoYaExistenteException {
+        long startTime = System.currentTimeMillis();
+
+        System.out.println("-- Top10 Usuarios con mas calificaciones por genero --");
+        MiLista<Usuario> todosLosUsuarios = usuariosHashTable.getValores();
+
+        if (todosLosUsuarios == null || todosLosUsuarios.isEmpty()){
+            System.out.println("No hay usuarios con mas calificaciones por genero");
+            return;
+        }
+
+        //lo dejo asi porque me olvide lo del top10 :(
     }
 }

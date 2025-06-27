@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import um.edu.uy.excepciones.ElementoNoExistenteException;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
 import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
 import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
@@ -140,6 +141,22 @@ public class HashCerradaLineal<K extends Comparable<K>, T extends Comparable<T>>
     @Override
     public int tamanio() {
         return size;
+    }
+
+    public void actualizar(K clave, T nuevoValor) throws ElementoNoExistenteException { //esta funcion va a ayudar con el tema de los generos
+        int hashInicial = hash(clave);
+        for (int i = 0; i < capacidad; i++) {
+            int indice = (hashInicial + i) % capacidad;
+            Objeto<K, T> entrada = tabla[indice];
+            if (entrada == null){
+                throw new ElementoNoExistenteException("La clave que se proporciono no tiene un valor que actualizar");
+            }
+            if (entrada.getClave().equals(clave)){
+                entrada.setValor(nuevoValor);
+                return;
+            }
+        }
+        throw new ElementoNoExistenteException("La clave no existe");
     }
 
 
