@@ -15,8 +15,8 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         boolean cierre = true;
 
-        // Se inicializa el contenedor de datos
-        DataParaCargadores cargadores = new DataParaCargadores(180001, 64801, 305009, 60007); // Usando primos cercanos
+        // Se inicializa el contenedor de datos con capacidades de número primo
+        DataParaCargadores datos = new DataParaCargadores(180001, 64801, 305009, 60007);
 
         boolean datosCargados = false;
         long tiempoTotalCargaMs = 0;
@@ -42,24 +42,28 @@ public class Main {
                         CargadorDeMovies moviesLoader = new CargadorDeMovies();
                         String moviesCsvFile = "movies_metadata.csv";
                         try {
-                            // SOLUCIÓN: Se pasan las HashTables del contenedor al método del cargador
-                            moviesLoader.cargadorMoviesAHash(moviesCsvFile, cargadores.getPeliculas(), cargadores.getColecciones());
-                            System.out.println("  - Películas únicas cargadas: " + cargadores.getPeliculas().tamanio() + ".");
-                            System.out.println("  - Colecciones únicas cargadas: " + cargadores.getColecciones().tamanio() + ".");
+                            // SOLUCIÓN: Se pasan las HashTables del contenedor al método del cargador.
+                            // El método es void, no devuelve nada, solo modifica las tablas.
+                            moviesLoader.cargadorMoviesAHash(moviesCsvFile, datos.getPeliculas(), datos.getColecciones());
+                            System.out.println("  - Películas únicas cargadas: " + datos.getPeliculas().tamanio() + ".");
+                            System.out.println("  - Colecciones únicas cargadas: " + datos.getColecciones().tamanio() + ".");
                         } catch (Exception e) {
                             System.out.println("  - ERROR al cargar películas: " + e.getMessage());
+                            e.printStackTrace();
                             break; // Detener la carga si falla
                         }
 
-                        // --- Carga de Calificaciones ---
+                        // --- Carga de Calificaciones y Usuarios ---
                         CargadorDeCalificaciones calificacionesLoader = new CargadorDeCalificaciones();
-                        String ratingsCsvFile = "ratings.csv"; // Usar el archivo completo
+                        String ratingsCsvFile = "ratings_1mm.csv"; // Usar el archivo completo
                         try {
-                            // SOLUCIÓN: Se le pasa la MiLista al cargador para que la llene
-                            calificacionesLoader.cargarCalificacionesAHash(ratingsCsvFile, cargadores.getCalificaciones(), cargadores.getUsuarios());
-                            System.out.println("  - Total de calificaciones individuales cargadas: " + cargadores.getCalificaciones().size() + ".");
+                            // SOLUCIÓN: Se pasan la MiLista y la HashTable al método del cargador.
+                            calificacionesLoader.cargarCalificaciones(ratingsCsvFile, datos.getCalificaciones(), datos.getUsuarios());
+                            System.out.println("  - Total de calificaciones individuales cargadas: " + datos.getCalificaciones().size() + ".");
+                            System.out.println("  - Usuarios únicos cargados: " + datos.getUsuarios().tamanio() + ".");
                         } catch (Exception e) {
                             System.out.println("  - ERROR al cargar calificaciones: " + e.getMessage());
+                            e.printStackTrace();
                             break;
                         }
 
@@ -67,14 +71,14 @@ public class Main {
                         CargadorDeCredits creditsLoader = new CargadorDeCredits();
                         String creditsCsvFile = "credits.csv";
                         try {
-                            // SOLUCIÓN: Se pasa la HashTable de personas al cargador
-                            creditsLoader.cargarCredits(creditsCsvFile, cargadores.getPersonas());
-                            System.out.println("  - Personas únicas (Actores/Directores) cargadas: " + cargadores.getPersonas().tamanio() + ".");
+                            // SOLUCIÓN: Se pasa la HashTable de personas al cargador.
+                            creditsLoader.cargarCredits(creditsCsvFile, datos.getPersonas());
+                            System.out.println("  - Personas únicas (Actores/Directores) cargadas: " + datos.getPersonas().tamanio() + ".");
 
                             // --- Conteo de Actores y Directores ---
                             long totalActores = 0;
                             long totalDirectores = 0;
-                            HashCerradaLineal<Integer, Persona> tempPersonasHash = (HashCerradaLineal<Integer, Persona>) cargadores.getPersonas();
+                            HashCerradaLineal<Integer, Persona> tempPersonasHash = (HashCerradaLineal<Integer, Persona>) datos.getPersonas();
                             MiLista<Persona> todasLasPersonas = tempPersonasHash.getValores();
 
                             for (int i = 0; i < todasLasPersonas.size(); i++) {
@@ -87,6 +91,7 @@ public class Main {
                             System.out.println("  - Total de directores cargados: " + totalDirectores + ".");
                         } catch (Exception e) {
                             System.out.println("  - ERROR al cargar créditos: " + e.getMessage());
+                            e.printStackTrace();
                             break;
                         }
 
@@ -103,6 +108,7 @@ public class Main {
                         break;
                     }
                     // El menú de consultas se manejaría aquí...
+                    System.out.println("Menú de consultas no implementado.");
                     break;
 
                 case "3":
