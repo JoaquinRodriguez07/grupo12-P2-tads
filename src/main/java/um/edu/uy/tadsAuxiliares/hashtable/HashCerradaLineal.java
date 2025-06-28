@@ -1,3 +1,4 @@
+
 package um.edu.uy.tadsAuxiliares.hashtable;
 
 import lombok.AllArgsConstructor;
@@ -6,19 +7,21 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import um.edu.uy.excepciones.ElementoNoExistenteException;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
-import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
-import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
+
+import java.util.Iterator;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class HashCerradaLineal<K extends Comparable<K>, T > implements HashTable<K, T> {
+public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<K, T> {
 
     private Objeto<K, T>[] tabla;
     private int capacidad;
     private int size;
     private double maxFactorCarga = 0.7;
+
+    private static final Objeto TOMBSTONE = new Objeto<>(null, null);
 
     @SuppressWarnings("unchecked")
     public HashCerradaLineal(int capacidad) {
@@ -27,57 +30,67 @@ public class HashCerradaLineal<K extends Comparable<K>, T > implements HashTable
         this.size = 0;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Iterator<T> iterator() {
+        return new HashIterator<K,T>(this.tabla, this.capacidad, this.size, TOMBSTONE);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Iterable<K> keys() {
+        // Usa una expresión lambda para devolver una nueva instancia de nuestro KeyIterator.
+        return () -> new KeyIterator<K,T>(this.tabla, this.capacidad, this.size, TOMBSTONE);
+    }
+
+
+    // El resto del código de la clase (insertar, borrar, obtener, etc.)
+    // permanece exactamente igual que en la corrección anterior.
+
     @Override
     public void insertar(K clave, T valor) throws ElementoYaExistenteException {
         if ((double) size / capacidad > maxFactorCarga) {
             reestructurar();
         }
         int hashInicial = hash(clave);
-
         for (int i = 0; i < capacidad; i++) {
             int indice = (hashInicial + i) % capacidad;
             Objeto<K, T> entrada = tabla[indice];
-
-            if (entrada == null) {
+            if (entrada == null || entrada == TOMBSTONE) {
                 tabla[indice] = new Objeto<>(clave, valor);
                 size++;
                 return;
-            } else if (entrada.getClave().equals(clave)) {
+            }
+            if (entrada.getClave().equals(clave)) {
                 throw new ElementoYaExistenteException("La clave ya existe: " + clave);
             }
-            // Continua con la búsqueda lineal si hay colisión
         }
-
         throw new RuntimeException("Tabla llena, no se pudo insertar");
     }
 
     @Override
-    public boolean pertenece(K clave) {
+    public T obtener(K clave) {
         int hashInicial = hash(clave);
-
         for (int i = 0; i < capacidad; i++) {
             int indice = (hashInicial + i) % capacidad;
             Objeto<K, T> entrada = tabla[indice];
-
-            if (entrada == null) return false;
-            if (entrada.getClave().equals(clave)) return true;
+            if (entrada == null) return null;
+            if (entrada == TOMBSTONE) continue;
+            if (entrada.getClave().equals(clave)) return entrada.getValor();
         }
-
-        return false;
+        return null;
     }
 
     @Override
     public void borrar(K clave) {
         int hashInicial = hash(clave);
-
         for (int i = 0; i < capacidad; i++) {
             int indice = (hashInicial + i) % capacidad;
             Objeto<K, T> entrada = tabla[indice];
-
             if (entrada == null) return;
-
+            if (entrada == TOMBSTONE) continue;
             if (entrada.getClave().equals(clave)) {
-                tabla[indice] = null;
+                tabla[indice] = TOMBSTONE;
                 size--;
                 return;
             }
@@ -86,22 +99,18 @@ public class HashCerradaLineal<K extends Comparable<K>, T > implements HashTable
 
     @Override
     public void reestructurar() {
-        System.out.println("REESTRUCTURANDO TABLA HASH. Capacidad anterior: " + capacidad + "."); // <-- AÑADE ESTA LÍNEA
+        System.out.println("REESTRUCTURANDO TABLA HASH. Capacidad anterior: " + capacidad + ".");
         int nuevaCapacidad = siguientePrimo(capacidad * 2);
-        System.out.println("Nueva capacidad (primo): " + nuevaCapacidad); // <-- AÑADE ESTA LÍNEA
-
+        System.out.println("Nueva capacidad (primo): " + nuevaCapacidad);
         Objeto<K, T>[] tablaVieja = tabla;
-
         @SuppressWarnings("unchecked")
         Objeto<K, T>[] nuevaTabla = (Objeto<K, T>[]) new Objeto[nuevaCapacidad];
-
         tabla = nuevaTabla;
         int viejaCapacidad = capacidad;
         capacidad = nuevaCapacidad;
-        size = 0; // Se resetea el tamaño porque se reinsertarán todos los elementos
-
+        size = 0;
         for (int i = 0; i < viejaCapacidad; i++) {
-            if (tablaVieja[i] != null) {
+            if (tablaVieja[i] != null && tablaVieja[i] != TOMBSTONE) {
                 try {
                     insertar(tablaVieja[i].getClave(), tablaVieja[i].getValor());
                 } catch (ElementoYaExistenteException e) {
@@ -109,50 +118,44 @@ public class HashCerradaLineal<K extends Comparable<K>, T > implements HashTable
                 }
             }
         }
-        System.out.println("Reestructuración completada. Elementos reinsertados: " + size); // <-- AÑADE ESTA LÍNEA
+        System.out.println("Reestructuración completada. Elementos reinsertados: " + size);
+    }
+
+    private int hash(K clave) {
+        return (clave.hashCode() & 0x7fffffff) % capacidad;
     }
 
     @Override
-    public T obtener(K clave) {
+    public boolean pertenece(K clave) {
         int hashInicial = hash(clave);
-
         for (int i = 0; i < capacidad; i++) {
             int indice = (hashInicial + i) % capacidad;
             Objeto<K, T> entrada = tabla[indice];
-
-            if (entrada == null) return null;
-            if (entrada.getClave().equals(clave)) return entrada.getValor();
+            if (entrada == null) return false;
+            if (entrada == TOMBSTONE) continue;
+            if (entrada.getClave().equals(clave)) return true;
         }
-
-        return null;
+        return false;
     }
 
 
-    @Override
-    public MiLista<T> getValores() { // Devuelve una MiLista de todos los valores
-        MiLista<T> valores = new MiArrayList<>();
-        for (int i = 0; i < capacidad; i++) {
-            if (tabla[i] != null) {
-                valores.add(tabla[i].getValor());
-            }
-        }
-        return valores;
-    }
 
     @Override
     public int tamanio() {
         return size;
     }
 
-    public void actualizar(K clave, T nuevoValor) throws ElementoNoExistenteException { //esta funcion va a ayudar con el tema de los generos
+    @Override
+    public void actualizar(K clave, T nuevoValor) throws ElementoNoExistenteException {
         int hashInicial = hash(clave);
         for (int i = 0; i < capacidad; i++) {
             int indice = (hashInicial + i) % capacidad;
             Objeto<K, T> entrada = tabla[indice];
-            if (entrada == null){
+            if (entrada == null) {
                 throw new ElementoNoExistenteException("La clave que se proporciono no tiene un valor que actualizar");
             }
-            if (entrada.getClave().equals(clave)){
+            if (entrada == TOMBSTONE) continue;
+            if (entrada.getClave().equals(clave)) {
                 entrada.setValor(nuevoValor);
                 return;
             }
@@ -160,40 +163,27 @@ public class HashCerradaLineal<K extends Comparable<K>, T > implements HashTable
         throw new ElementoNoExistenteException("La clave no existe");
     }
 
-
-
-    // Funciones auxiliares
-
     private int siguientePrimo(int n) {
+        if (n % 2 == 0) n++;
         while (!esPrimo(n)) {
-            n++;
+            n += 2;
         }
         return n;
     }
 
     private boolean esPrimo(int n) {
         if (n <= 1) return false;
-        if (n == 2) return true;
-        if (n % 2 == 0) return false;
-        for (int i = 3; i * i <= n; i += 2) {
-            if (n % i == 0) return false;
+        if (n <= 3) return true;
+        if (n % 2 == 0 || n % 3 == 0) return false;
+        for (int i = 5; i * i <= n; i = i + 6) {
+            if (n % i == 0 || n % (i + 2) == 0) return false;
         }
         return true;
     }
 
-
-    //este metodo agarra todas las claves de la hashtable y los pone en una arraylist
-    public MiLista<K> getClaves() {
-        MiLista<K> claves = new MiArrayList<>();
-        for (int i = 0; i < capacidad; i++) {
-            if (tabla[i] != null) {
-                claves.add(tabla[i].getClave());
-            }
-        }
-        return claves;
-    }
-
-    private int hash(K clave) {
-        return Math.abs(clave.hashCode()) % capacidad;
+    @SuppressWarnings("unchecked")
+    @Override
+    public Iterable<Objeto<K, T>> entries() {
+        return () -> new EntryIterator<K,T>(this.tabla, this.capacidad, this.size, TOMBSTONE);
     }
 }

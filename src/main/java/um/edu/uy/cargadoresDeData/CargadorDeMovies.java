@@ -50,7 +50,7 @@ public class CargadorDeMovies {
         try {
             // Se parsean los campos básicos de la película
             int peliculaId = Integer.parseInt(record.get("id"));
-            String titulo = record.get("title");
+            String titulo = record.get("original_title");
             String idiomaOriginal = record.get("original_language");
             double ingresos = parseDouble(record.get("revenue"));
 

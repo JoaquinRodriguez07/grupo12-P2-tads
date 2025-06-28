@@ -55,21 +55,6 @@ public class Calificacion implements Comparable<Calificacion> {
     }
 
 
-    //LO DEJO ACA POR SI LO DE LOMBOK NO FUNCA
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        Calificaciones that = (Calificaciones) o;
-//        return usuario == that.usuario &&
-//                idPelicula == that.idPelicula &&
-//                Double.compare(puntaje, that.puntaje) == 0 &&
-//                Objects.equals(fecha, that.fecha); // Objects.equals maneja nulos
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(usuario, idPelicula, puntaje, fecha);
-//    }
+
 
 }

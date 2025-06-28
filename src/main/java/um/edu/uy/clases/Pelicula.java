@@ -15,6 +15,10 @@ public class Pelicula implements Comparable<Pelicula> {
     private String coleccion;
     private double ingresos;
     private MiLista<String> generos;
+    private int conteoCalificaciones;
+    private double calificacionPromedio;
+
+
 
     public Pelicula(int id, String titulo, String idiomaOriginal, String coleccion, double ingresos) {
         this.id = id;
@@ -23,6 +27,9 @@ public class Pelicula implements Comparable<Pelicula> {
         this.coleccion = coleccion;
         this.ingresos = ingresos;
         this.generos = new MiArrayList<>();
+        this.conteoCalificaciones = 0;
+        this.calificacionPromedio = 0.0;
+
     }
 
     @Override

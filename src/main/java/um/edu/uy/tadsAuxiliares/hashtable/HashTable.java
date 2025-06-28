@@ -1,18 +1,25 @@
+// Archivo: um/edu/uy/tadsAuxiliares/hashtable/HashTable.java
+
 package um.edu.uy.tadsAuxiliares.hashtable;
 
+import um.edu.uy.excepciones.ElementoNoExistenteException;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
 import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 
-public interface HashTable<K,T> {
+public interface HashTable<K extends Comparable<K>, T> extends Iterable<T> {
 
-    public void insertar(K clave, T valor) throws ElementoYaExistenteException;
-    public boolean pertenece(K clave);
-    public void borrar(K clave);
-    public void reestructurar();
+    Iterable<K> keys();
 
+    void insertar(K clave, T valor) throws ElementoYaExistenteException;
+    boolean pertenece(K clave);
+    void borrar(K clave);
+    void reestructurar();
     T obtener(K clave);
-
-    MiLista<T> getValores();
-
     int tamanio();
+
+    void actualizar(K clave, T nuevoValor) throws ElementoNoExistenteException;
+
+
+
+    Iterable<Objeto<K, T>> entries();
 }

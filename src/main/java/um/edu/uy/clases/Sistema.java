@@ -1,452 +1,452 @@
+
 package um.edu.uy.clases;
 
-import um.edu.uy.clases.Calificacion;
-import um.edu.uy.clases.DataParaCargadores;
-import um.edu.uy.clases.Pelicula;
+import lombok.Getter;
+import lombok.Setter;
+import um.edu.uy.excepciones.ElementoNoExistenteException;
+import um.edu.uy.excepciones.ElementoYaExistenteException;
+import um.edu.uy.herramientasDeSorting.MergeSort;
 import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
 import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 import um.edu.uy.tadsAuxiliares.hashtable.HashCerradaLineal;
 import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
+import um.edu.uy.tadsAuxiliares.hashtable.Objeto;
+
+import java.util.Comparator;
 
 import java.time.Month;
 
+
+@Getter
+@Setter
 public class Sistema {
 
     private final DataParaCargadores datos;
-    private boolean generosProcesados = false; // lento pero va a funcionar
+    private boolean generosProcesados = false;
 
     public Sistema(DataParaCargadores datos) {
         this.datos = datos;
     }
 
-
     public void funcion1() {
         System.out.println("\n--- Ejecutando Consulta 1: Top 5 Películas por Idioma ---");
-        long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis(); // Medidor común: se inicia el cronómetro
 
-        // Obtener la lista de todas las películas. Es necesario hacer un "cast" a la clase concreta
-        // para poder usar métodos específicos como .getValores() que no están en la interfaz HashTable.
-        MiLista<Pelicula> todasLasPeliculas = datos.getPeliculas().getValores();
-
-        // Crear listas para cada idioma
-        MiArrayList<Pelicula> peliculasEs = new MiArrayList<>();
-        MiArrayList<Pelicula> peliculasEn = new MiArrayList<>();
-        MiArrayList<Pelicula> peliculasFr = new MiArrayList<>();
-        MiArrayList<Pelicula> peliculasIt = new MiArrayList<>();
-        MiArrayList<Pelicula> peliculasPt = new MiArrayList<>();
-
-        // Clasificar cada película en su lista de idioma correspondiente
-        for (int i = 0; i < todasLasPeliculas.size(); i++) {
-            Pelicula pelicula = todasLasPeliculas.get(i);
-            String idioma = pelicula.getIdiomaOriginal();
-
-            if (idioma != null) {
-                switch (idioma) {
-                    case "es":
-                        peliculasEs.add(pelicula);
-                        break;
-                    case "en":
-                        peliculasEn.add(pelicula);
-                        break;
-                    case "fr":
-                        peliculasFr.add(pelicula);
-                        break;
-                    case "it":
-                        peliculasIt.add(pelicula);
-                        break;
-                    case "pt":
-                        peliculasPt.add(pelicula);
-                        break;
+        // 1. Agrupar películas por idioma
+        HashTable<String, MiArrayList<Pelicula>> peliculasPorIdioma = new HashCerradaLineal<>(200);
+        for (Pelicula p : datos.getPeliculas()) {
+            String idioma = p.getIdiomaOriginal();
+            if (idioma != null && !idioma.isEmpty()) {
+                MiArrayList<Pelicula> listaDelIdioma = peliculasPorIdioma.obtener(idioma);
+                if (listaDelIdioma == null) {
+                    listaDelIdioma = new MiArrayList<>();
+                    try {
+                        peliculasPorIdioma.insertar(idioma, listaDelIdioma);
+                    } catch (Exception ignored) {}
                 }
+                listaDelIdioma.add(p);
             }
         }
 
-        // Imprimir el top 5 para cada idioma
-        System.out.println("\n-- Top 5 Español --");
-        imprimirTop5PeliculasPorCalificaciones(peliculasEs);
+        String[] idiomas = {"en", "fr", "it", "es", "pt"};
+        String[] titulos = {"Inglés", "Francés", "Italiano", "Español", "Portugués"};
 
-        System.out.println("\n-- Top 5 Inglés --");
-        imprimirTop5PeliculasPorCalificaciones(peliculasEn);
+        // 2. Comparador optimizado
+        Comparator<Pelicula> comparador = (p1, p2) -> Integer.compare(
+                p2.getConteoCalificaciones(),
+                p1.getConteoCalificaciones()
+        );
 
-        System.out.println("\n-- Top 5 Francés --");
-        imprimirTop5PeliculasPorCalificaciones(peliculasFr);
+        // 3. Procesar cada idioma
+        for (int i = 0; i < idiomas.length; i++) {
+            System.out.println("\n-- " + titulos[i] + " --");
+            MiArrayList<Pelicula> listaAProcesar = peliculasPorIdioma.obtener(idiomas[i]);
 
-        System.out.println("\n-- Top 5 Italiano --");
-        imprimirTop5PeliculasPorCalificaciones(peliculasIt);
+            if (listaAProcesar != null && !listaAProcesar.isEmpty()) {
 
-        System.out.println("\n-- Top 5 Portugués --");
-        imprimirTop5PeliculasPorCalificaciones(peliculasPt);
+                for (Pelicula p : listaAProcesar) {
+                    p.setConteoCalificaciones(obtenerCantidadCalificaciones(p.getId()));
+                }
+
+                MergeSort.sort(listaAProcesar, comparador);
+                imprimirTopPeliculas(listaAProcesar, 5, titulos[i]);
+
+            } else {
+                System.out.println("No se encontraron películas para este idioma.");
+            }
+        }
 
         long endTime = System.currentTimeMillis();
         System.out.println("Tiempo de ejecución de la consulta: " + (endTime - startTime) + "ms");
     }
 
 
-    private void imprimirTop5PeliculasPorCalificaciones(MiArrayList<Pelicula> peliculas) {
-        if (peliculas.isEmpty()) {
-            System.out.println("No se encontraron películas para este idioma.");
-            return;
-        }
-
-        HashTable<Integer, MiLista<Calificacion>> calificacionesPorPelicula = datos.getCalificacionesPorPelicula();
-
-        // Ordenar la lista usando BubbleSort basado en el número de calificaciones
-        for (int i = 0; i < peliculas.size() - 1; i++) {
-            for (int j = 0; j < peliculas.size() - i - 1; j++) {
-                Pelicula p1 = peliculas.get(j);
-                Pelicula p2 = peliculas.get(j + 1);
-
-                MiLista<Calificacion> calif1 = calificacionesPorPelicula.obtener(p1.getId());
-                int nroCalif1;
-                if (calif1 != null) {
-                    nroCalif1 = calif1.size();
-                } else {
-                    nroCalif1 = 0;
-                }
-
-                MiLista<Calificacion> calif2 = calificacionesPorPelicula.obtener(p2.getId());
-                int nroCalif2;
-                if (calif2 != null) {
-                    nroCalif2 = calif2.size();
-                } else {
-                    nroCalif2 = 0;
-                }
-
-                if (nroCalif1 < nroCalif2) {
-                    // Intercambiar elementos
-                    peliculas.set(j, p2);
-                    peliculas.set(j + 1, p1);
-                }
-            }
-        }
-
-        // Imprimir el top 5
-        int limite = Math.min(5, peliculas.size());
+    private void imprimirTopPeliculas(MiArrayList<Pelicula> peliculas, int topN, String nombreIdioma) {
+        int limite = Math.min(topN, peliculas.size());
         for (int i = 0; i < limite; i++) {
             Pelicula p = peliculas.get(i);
-            MiLista<Calificacion> calif = calificacionesPorPelicula.obtener(p.getId());
-
-            int nroCalif;
-            if (calif != null) {
-                nroCalif = calif.size();
-            } else {
-                nroCalif = 0;
-            }
-
-            // Formato: Id de la película, Título de la película, Total de evaluaciones, Idioma Original
-            System.out.println(p.getId() + ", " + p.getTitulo() + ", " + nroCalif + ", " + p.getIdiomaOriginal());
+            System.out.println(p.getId() + ", " + p.getTitulo() + ", " + p.getConteoCalificaciones() + ", " + nombreIdioma);
         }
     }
 
+    private int obtenerCantidadCalificaciones(int idPelicula) {
+        MiLista<Calificacion> calif = datos.getCalificacionesPorPelicula().obtener(idPelicula);
+        return (calif != null) ? calif.size() : 0; //SIMPLFIQUE EL IF ASI ME QUEDA MAS CORTITO
+    }
 
     public void funcion2() {
         System.out.println("\n--- Ejecutando Consulta 2: Top 10 Películas con Mejor Calificación Media ---");
         long startTime = System.currentTimeMillis();
 
-        MiLista<Pelicula> peliculasConCalificaciones = new MiArrayList<>();
-        MiLista<Integer> idsPeliculasConCalif = ((HashCerradaLineal<Integer, MiLista<Calificacion>>) datos.getCalificacionesPorPelicula()).getClaves();
+        MiArrayList<Pelicula> candidatas = new MiArrayList<>();
 
-        for(int i = 0; i < idsPeliculasConCalif.size(); i++) {
-            Integer idPelicula = idsPeliculasConCalif.get(i);
-            MiLista<Calificacion> calificaciones = datos.getCalificacionesPorPelicula().obtener(idPelicula);
+        for (Integer idPelicula : datos.getCalificacionesPorPelicula().keys()) {
 
-            // Requisito: Solo considerar películas con más de 100 calificaciones
-            if (calificaciones != null && calificaciones.size() > 100) {
+            if (obtenerCantidadCalificaciones(idPelicula) > 100) {
                 Pelicula p = datos.getPeliculas().obtener(idPelicula);
                 if (p != null) {
-                    peliculasConCalificaciones.add(p);
+                    // OPTIMIZACIÓN CLAVE: Calculamos el promedio UNA SOLA VEZ y lo guardamos en la película.
+                    p.setCalificacionPromedio(calcularPromedioCalificacion(p));
+                    candidatas.add(p);
                 }
             }
         }
 
-        // Ordenar la lista usando BubbleSort basado en la calificación promedio
-        for (int i = 0; i < peliculasConCalificaciones.size() - 1; i++) {
-            for (int j = 0; j < peliculasConCalificaciones.size() - i - 1; j++) {
-                Pelicula p1 = peliculasConCalificaciones.get(j);
-                Pelicula p2 = peliculasConCalificaciones.get(j + 1);
+        Comparator<Pelicula> comp = (p1, p2) -> Double.compare(p2.getCalificacionPromedio(), p1.getCalificacionPromedio());
+        MergeSort.sort(candidatas, comp);
 
-                if (calcularPromedioCalificacion(p1) < calcularPromedioCalificacion(p2)) {
-                    // Intercambiar elementos
-                    peliculasConCalificaciones.set(j, p2);
-                    peliculasConCalificaciones.set(j + 1, p1);
-                }
-            }
-        }
-
-        // Imprimir el top 10
         System.out.println("\n-- Top 10 Películas por Calificación Media --");
-        int limite = Math.min(10, peliculasConCalificaciones.size());
+        int limite = Math.min(10, candidatas.size());
         for (int i = 0; i < limite; i++) {
-            Pelicula pelicula = peliculasConCalificaciones.get(i);
-            // Formato: Id de la película, Título de la película, Calificación media
-            System.out.printf("%d, %s, %.2f\n", pelicula.getId(), pelicula.getTitulo(), calcularPromedioCalificacion(pelicula));
+            Pelicula p = candidatas.get(i);
+            System.out.printf("%d, %s, %.2f\n", p.getId(), p.getTitulo(), p.getCalificacionPromedio());
         }
-
         long endTime = System.currentTimeMillis();
-        System.out.println("Tiempo de ejecución de la consulta: " + (endTime - startTime) + "ms");
+        System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
     }
-
 
     private double calcularPromedioCalificacion(Pelicula pelicula) {
         MiLista<Calificacion> calificaciones = datos.getCalificacionesPorPelicula().obtener(pelicula.getId());
         if (calificaciones == null || calificaciones.isEmpty()) {
             return 0.0;
         }
-
-        double sumaTotal = 0;
-        for (int i = 0; i < calificaciones.size(); i++) {
-            sumaTotal += calificaciones.get(i).getPuntaje();
+        double suma = 0;
+        for (Calificacion c : calificaciones) {
+            suma += c.getPuntaje();
         }
-
-        return sumaTotal / calificaciones.size();
+        return suma / calificaciones.size();
     }
-
-
 
     public void funcion3() {
         System.out.println("\n--- Ejecutando Consulta 3: Top 5 Colecciones por Ingresos ---");
         long startTime = System.currentTimeMillis();
 
-        MiLista<Coleccion> todasLasColecciones = datos.getColecciones().getValores();
-
-        // 1. Calcular el total de ingresos para cada colección
-        for (int i = 0; i < todasLasColecciones.size(); i++) {
-            Coleccion coleccion = todasLasColecciones.get(i);
+        // 1. Calculamos los ingresos de cada colección de forma optimizada.
+        for (Coleccion c : datos.getColecciones()) {
             double totalIngresos = 0;
-
-            MiLista<Pelicula> peliculasDeLaColeccion = coleccion.getPeliculas().getValores();
-            for (int j = 0; j < peliculasDeLaColeccion.size(); j++) {
-                totalIngresos += peliculasDeLaColeccion.get(j).getIngresos();
+            for (Pelicula p : c.getPeliculas()) {
+                totalIngresos += p.getIngresos();
             }
-            coleccion.setIngresos(totalIngresos); // Guardamos el total calculado en el objeto
+            c.setIngresos(totalIngresos);
         }
 
-        // 2. Ordenar las colecciones por ingresos (de mayor a menor)
-        for (int i = 0; i < todasLasColecciones.size() - 1; i++) {
-            for (int j = 0; j < todasLasColecciones.size() - i - 1; j++) {
-                Coleccion c1 = todasLasColecciones.get(j);
-                Coleccion c2 = todasLasColecciones.get(j + 1);
-                if (c1.getIngresos() < c2.getIngresos()) {
-                    todasLasColecciones.set(j, c2);
-                    todasLasColecciones.set(j + 1, c1);
-                }
-            }
+        // 2. Creamos una lista temporal para poder ordenarla.
+        MiArrayList<Coleccion> listaParaOrdenar = new MiArrayList<>();
+        for (Coleccion c : datos.getColecciones()) {
+            listaParaOrdenar.add(c);
         }
-
-        // 3. Imprimir el Top 5
+        // 3. Ordenamos la lista por ingresos.
+        Comparator<Coleccion> comp = (c1, c2) -> Double.compare(c2.getIngresos(), c1.getIngresos());
+        MergeSort.sort(listaParaOrdenar, comp);
+        // 4. Imprimimos el resultado con el formato solicitado.
         System.out.println("\n-- Top 5 Colecciones por Ingresos Generados --");
-        int limite = Math.min(5, todasLasColecciones.size());
+        int limite = Math.min(5, listaParaOrdenar.size());
         for (int i = 0; i < limite; i++) {
-            Coleccion coleccion = todasLasColecciones.get(i);
-            MiLista<Integer> idsPeliculas = ((HashCerradaLineal<Integer, Pelicula>) coleccion.getPeliculas()).getClaves();
+            Coleccion c = listaParaOrdenar.get(i);
 
-            // Construir el string de IDs
-            StringBuilder idsStr = new StringBuilder("[");
-            for (int k = 0; k < idsPeliculas.size(); k++) {
-                idsStr.append(idsPeliculas.get(k));
-                if (k < idsPeliculas.size() - 1) {
-                    idsStr.append(",");
+            StringBuilder idsPeliculasStr = new StringBuilder("[");
+            boolean esPrimero = true;
+            for (Integer idPelicula : c.getPeliculas().keys()) {
+                if (!esPrimero) {
+                    idsPeliculasStr.append(",");
                 }
+                idsPeliculasStr.append(idPelicula);
+                esPrimero = false;
             }
-            idsStr.append("]");
+            idsPeliculasStr.append("]");
 
-            // Formato: Id, Título, Cantidad de películas, [IDs], Ingresos
-            System.out.printf("%d, %s, %d, %s, %.2f\n",
-                    coleccion.getId(),
-                    coleccion.getTitulo(),
-                    idsPeliculas.size(),
-                    idsStr.toString(),
-                    coleccion.getIngresos());
+            System.out.printf("%d,%s,%d,%s,%.2f\n",
+                    c.getId(),
+                    c.getTitulo(),
+                    c.getPeliculas().tamanio(),
+                    idsPeliculasStr.toString(),
+                    c.getIngresos()
+            );
         }
 
         long endTime = System.currentTimeMillis();
-        System.out.println("Tiempo de ejecución de la consulta: " + (endTime - startTime) + "ms");
+        System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
     }
-
 
     public void funcion4() {
         System.out.println("\n--- Ejecutando Consulta 4: Top 10 Directores por Calificación (Mediana) ---");
         long startTime = System.currentTimeMillis();
 
-        MiLista<Persona> todosLasPersonas = datos.getPersonas().getValores();
         MiArrayList<Persona> directoresCalificados = new MiArrayList<>();
 
-        // 1. Filtrar directores y calcular su mediana
-        for (int i = 0; i < todosLasPersonas.size(); i++) {
-            Persona persona = todosLasPersonas.get(i);
+        for (Persona p : datos.getPersonas()) {
 
-            // Requisito 1: Ser director y tener más de una película
-            if (persona.isDirector() && persona.getIdsPeliculasDirigidas().size() > 1) {
-                MiLista<Integer> idsPeliculasDirigidas = persona.getIdsPeliculasDirigidas();
-                MiArrayList<Double> calificacionesTotales = new MiArrayList<>();
-
-                // Recolectar todas las calificaciones de todas sus películas
-                for (int j = 0; j < idsPeliculasDirigidas.size(); j++) {
-                    Integer idPelicula = idsPeliculasDirigidas.get(j);
-                    MiLista<Calificacion> califDePelicula = datos.getCalificacionesPorPelicula().obtener(idPelicula);
-                    if (califDePelicula != null) {
-                        for (int k = 0; k < califDePelicula.size(); k++) {
-                            calificacionesTotales.add(califDePelicula.get(k).getPuntaje());
-                        }
-                    }
-                }
-
-                // Requisito 2: Tener más de 100 evaluaciones en total
-                if (calificacionesTotales.size() > 100) {
-                    double mediana = calculoMediana(calificacionesTotales);
-                    persona.setCalificacion(mediana); // Se usa un campo temporal en Persona para la mediana
-                    directoresCalificados.add(persona);
+            if (p.isDirector() && p.getIdsPeliculasDirigidas().size() > 1) {
+                MiArrayList<Double> calificaciones = obtenerCalificacionesDeDirector(p);
+                if (calificaciones.size() > 100) {
+                    // La estrategia de cachear el resultado es excelente y se mantiene.
+                    p.setCalificacion(calculoMediana(calificaciones));
+                    directoresCalificados.add(p);
                 }
             }
         }
 
-        // 2. Ordenar los directores por su calificación (mediana)
-        for (int i = 0; i < directoresCalificados.size() - 1; i++) {
-            for (int j = 0; j < directoresCalificados.size() - i - 1; j++) {
-                if (directoresCalificados.get(j).getCalificacion() < directoresCalificados.get(j+1).getCalificacion()) {
-                    Persona temp = directoresCalificados.get(j);
-                    directoresCalificados.set(j, directoresCalificados.get(j+1));
-                    directoresCalificados.set(j+1, temp);
-                }
-            }
-        }
+        Comparator<Persona> comp = (p1, p2) -> Double.compare(p2.getCalificacion(), p1.getCalificacion());
+        MergeSort.sort(directoresCalificados, comp);
 
-        // 3. Imprimir el Top 10
         System.out.println("\n-- Top 10 Directores por Calificación Mediana --");
         int limite = Math.min(10, directoresCalificados.size());
         for (int i = 0; i < limite; i++) {
-            Persona director = directoresCalificados.get(i);
-            // Formato: Nombre del director, Cantidad de películas, Mediana de su calificación
-            System.out.printf("%s, %d, %.2f\n",
-                    director.getNombre(),
-                    director.getIdsPeliculasDirigidas().size(),
-                    director.getCalificacion());
+            Persona p = directoresCalificados.get(i);
+            System.out.printf("%s,%d,%.2f\n", p.getNombre(), p.getIdsPeliculasDirigidas().size(), p.getCalificacion());
         }
 
         long endTime = System.currentTimeMillis();
-
-        System.out.println("Tiempo de ejecución de la consulta: " + (endTime - startTime) + "ms");
+        System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
 
     }
 
-
-    private double calculoMediana(MiArrayList<Double> calificaciones) {
-        if (calificaciones == null || calificaciones.isEmpty()) {
-            return 0;
-        }
-        // Ordenar la lista (BubbleSort)
-        for (int i = 0; i < calificaciones.size() - 1; i++) {
-            for (int j = 0; j < calificaciones.size() - i - 1; j++) {
-                if (calificaciones.get(j) > calificaciones.get(j + 1)) {
-                    double temp = calificaciones.get(j);
-                    calificaciones.set(j, calificaciones.get(j + 1));
-                    calificaciones.set(j + 1, temp);
+    private MiArrayList<Double> obtenerCalificacionesDeDirector(Persona director) {
+        MiArrayList<Double> lista = new MiArrayList<>();
+        // OPTIMIZADO: Iteramos sobre la lista de IDs de películas del director.
+        for (Integer idPelicula : director.getIdsPeliculasDirigidas()) {
+            MiLista<Calificacion> califPeli = datos.getCalificacionesPorPelicula().obtener(idPelicula);
+            if (califPeli != null) {
+                for (Calificacion c : califPeli) {
+                    lista.add(c.getPuntaje());
                 }
             }
         }
-
-        int n = calificaciones.size();
+        return lista;
+    }
+    private double calculoMediana(MiArrayList<Double> lista) {
+        if (lista.isEmpty()) {
+            return 0.0;
+        }
+        // La ordenación es un paso necesario para calcular la mediana.
+        MergeSort.sort(lista, Double::compare);
+        int n = lista.size();
         if (n % 2 != 0) {
-            // Si es impar, la mediana es el elemento del medio
-            return calificaciones.get(n / 2);
+            // Si el tamaño es impar, la mediana es el elemento del medio.
+            return lista.get(n / 2);
         } else {
-            // Si es par, es el promedio de los dos elementos centrales
-            double medio1 = calificaciones.get(n / 2 - 1);
-            double medio2 = calificaciones.get(n / 2);
+            // Si el tamaño es par, es el promedio de los dos del medio.
+            double medio1 = lista.get(n / 2 - 1);
+            double medio2 = lista.get(n / 2);
             return (medio1 + medio2) / 2.0;
         }
     }
 
-    //hacer funcion 5
+    public void funcion5() {
+        System.out.println("\n--- Ejecutando Consulta 5: Actor más Popular por Mes ---");
+        long startTime = System.currentTimeMillis();
+        // 1. Crear un arreglo de HashTables, una para cada mes.
+        @SuppressWarnings("unchecked")
+        HashTable<Integer, ActorStats>[] statsPorMes = (HashTable<Integer, ActorStats>[]) new HashTable[12];
+        for (int i = 0; i < 12; i++) {
+            statsPorMes[i] = new HashCerradaLineal<>(30001);
+        }
+
+        // 2. Recorrer TODAS las calificaciones UNA SOLA VEZ.
+        for (Calificacion calificacion : datos.getCalificaciones()) {
+            if (calificacion.getFecha() != null) {
+                // El mes va de 1 a 12, el índice del array de 0 a 11.
+                int monthIndex = calificacion.getFecha().getMonthValue() - 1;
+
+                // Obtenemos la tabla de estadísticas para el mes correspondiente.
+                HashTable<Integer, ActorStats> statsDelMes = statsPorMes[monthIndex];
+
+                MiLista<Persona> actores = datos.getActoresPorPelicula().obtener(calificacion.getIdPelicula());
+                if (actores != null) {
+                    // Iteramos sobre los actores de la película calificada.
+                    for (Persona actor : actores) {
+                        actualizarStatsActor(statsDelMes, actor, calificacion.getIdPelicula());
+                    }
+                }
+            }
+        }
+
+        // 3. Ahora que todo está procesado, imprimir los ganadores de cada mes.
+        for (int month = 1; month <= 12; month++) {
+            imprimirGanadorDelMes(month, statsPorMes[month - 1]);
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("\n=======================================================");
+        System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
+        System.out.println("=======================================================");
+    }
+
+    private static class ActorStats {
+        String nombre;
+        int ratingCount = 0;
+        // Aumentamos la capacidad aquí también para evitar las reestructuraciones pequeñas.
+        HashTable<Integer, Boolean> movies = new HashCerradaLineal<>(53);
+
+        ActorStats(String nombre) {
+            this.nombre = nombre;
+        }
+    }
+
+    private void actualizarStatsActor(HashTable<Integer, ActorStats> statsDelMes, Persona actor, int movieId) {
+        ActorStats stats = statsDelMes.obtener(actor.getId());
+        if (stats == null) {
+            stats = new ActorStats(actor.getNombre());
+            try {
+                statsDelMes.insertar(actor.getId(), stats);
+            } catch (Exception ignored) {}
+        }
+        stats.ratingCount++;
+        if (!stats.movies.pertenece(movieId)) {
+            try {
+                stats.movies.insertar(movieId, true);
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private void imprimirGanadorDelMes(int month, HashTable<Integer, ActorStats> statsDelMes) {
+        ActorStats actorGanador = null;
+
+        // OPTIMIZADO: Se itera directamente sobre los valores de la tabla hash.
+        for (ActorStats currentStats : statsDelMes) {
+            if (actorGanador == null || currentStats.ratingCount > actorGanador.ratingCount) {
+                actorGanador = currentStats;
+            }
+        }
+
+        System.out.println("\n-- Mes: " + Month.of(month) + " --");
+        if (actorGanador != null) {
+            // Formato de salida según la imagen
+            System.out.printf("%s,%s,%d,%d\n",
+                    Month.of(month).name(),
+                    actorGanador.nombre,
+                    actorGanador.movies.tamanio(),
+                    actorGanador.ratingCount);
+        } else {
+            System.out.println("No se encontraron calificaciones para este mes.");
+        }
+    }
+
+    //esta idea la tuve que verificar con chat pq me parecio media extraña pero funciona
+    private static class UsuarioConConteo {
+        Usuario usuario;
+        int conteo;
+
+        public UsuarioConConteo(Usuario usuario, int conteo) {
+            this.usuario = usuario;
+            this.conteo = conteo;
+        }
+    }
+
 
     public void funcion6() {
         System.out.println("\n--- Ejecutando Consulta 6: Usuarios con más Calificaciones por Género ---");
         long startTime = System.currentTimeMillis();
 
+        // 1. Pre-procesar los géneros por usuario si no se ha hecho.
         if (!generosProcesados) {
             prepararCalificacionesPorGeneroParaUsuarios();
-            generosProcesados = true;
         }
 
-        // 2. Contar la popularidad de cada género (basado en el número de calificaciones)
-        HashCerradaLineal<String, Integer> conteoGeneros = new HashCerradaLineal<>(50);
-        MiLista<Calificacion> todasLasCalificaciones = datos.getCalificaciones();
-        for (int i = 0; i < todasLasCalificaciones.size(); i++) {
-            Calificacion calificacion = todasLasCalificaciones.get(i);
-            Pelicula pelicula = datos.getPeliculas().obtener(calificacion.getIdPelicula());
-            if (pelicula != null) {
-                MiLista<String> generos = pelicula.getGeneros();
-                for (int j = 0; j < generos.size(); j++) {
-                    String genero = generos.get(j);
+        // 2. Contar la popularidad de cada género.
+        HashTable<String, Integer> conteoGeneros = new HashCerradaLineal<>(50);
+        for (Calificacion calificacion : datos.getCalificaciones()) {
+            Pelicula p = datos.getPeliculas().obtener(calificacion.getIdPelicula());
+            if (p != null) {
+                for (String genero : p.getGeneros()) {
                     Integer count = conteoGeneros.obtener(genero);
                     try {
-                        if (count == null) {
-                            conteoGeneros.insertar(genero, 1);
-                        } else {
-                            conteoGeneros.borrar(genero);
-                            conteoGeneros.insertar(genero, count + 1);
-                        }
+                        // OPTIMIZADO: Se usa actualizar() en lugar de borrar() e insertar().
+                        if (count == null) conteoGeneros.insertar(genero, 1);
+                        else conteoGeneros.actualizar(genero, count + 1);
                     } catch (Exception ignored) {}
                 }
             }
         }
 
-        MiLista<String> listaGeneros = conteoGeneros.getClaves();
-        for (int i = 0; i < listaGeneros.size() - 1; i++) {
-            for (int j = 0; j < listaGeneros.size() - i - 1; j++) {
-                if (conteoGeneros.obtener(listaGeneros.get(j)) < conteoGeneros.obtener(listaGeneros.get(j + 1))) {
-                    String temp = listaGeneros.get(j);
-                    listaGeneros.set(j, listaGeneros.get(j + 1));
-                    listaGeneros.set(j + 1, temp);
-                }
-            }
+        // 3. Ordenar los géneros por popularidad de forma eficiente.
+        MiArrayList<Objeto<String, Integer>> generosOrdenados = new MiArrayList<>();
+        // OPTIMIZADO: Usamos el iterador de entradas (pares clave-valor).
+        for (Objeto<String, Integer> entry : conteoGeneros.entries()) {
+            generosOrdenados.add(entry);
         }
+        // El comparador ahora es súper rápido, no hace búsquedas en la tabla.
+        MergeSort.sort(generosOrdenados, (e1, e2) -> e2.getValor().compareTo(e1.getValor()));
 
-        System.out.println("\n-- Top Usuarios por Género (Top 10 Géneros más Vistos) --");
-        int limite = Math.min(10, listaGeneros.size());
-        MiLista<Usuario> todosLosUsuarios = datos.getUsuarios().getValores();
+        // --- OPTIMIZACIÓN ALGORÍTMICA ---
+        // 4. Encontrar el mejor usuario para CADA género en UNA SOLA PASADA.
+        HashCerradaLineal<String, UsuarioConConteo> topUsuariosPorGenero = new HashCerradaLineal<>(25); // 25 géneros aprox.
+        for (Usuario u : datos.getUsuarios()) {
+            for (Objeto<String, Integer> califGenero : u.getCalificacionesPorGenero().entries()) {
+                String genero = califGenero.getClave();
+                int conteoUsuario = califGenero.getValor();
 
-        for (int i = 0; i < limite; i++) {
-            String generoTop = listaGeneros.get(i);
-            Usuario usuarioTop = null;
-            int maxReviews = -1;
-
-            for(int j = 0; j < todosLosUsuarios.size(); j++){
-                Usuario usuarioActual = todosLosUsuarios.get(j);
-                Integer reviewsDeGenero = usuarioActual.getCalificacionesPorGenero().obtener(generoTop);
-                if(reviewsDeGenero != null && reviewsDeGenero > maxReviews){
-                    maxReviews = reviewsDeGenero;
-                    usuarioTop = usuarioActual;
-                }
-            }
-
-            if (usuarioTop != null) {
-                System.out.printf("%d, %s, %d\n",
-                        usuarioTop.getId(), generoTop, maxReviews);
-            }
-        }
-        long endTime = System.currentTimeMillis();
-        System.out.println("Tiempo de ejecución de la consulta: " + (endTime - startTime) + "ms");
-    }
-
-    private void prepararCalificacionesPorGeneroParaUsuarios() {
-        System.out.println("  (Procesando géneros de usuarios por primera vez");
-        MiLista<Usuario> todosLosUsuarios = datos.getUsuarios().getValores();
-        for (int i = 0; i < todosLosUsuarios.size(); i++) {
-            Usuario usuario = todosLosUsuarios.get(i);
-            MiLista<Calificacion> calificacionesDelUsuario = usuario.getCalificacionesDelUsuario();
-            for (int j = 0; j < calificacionesDelUsuario.size(); j++) {
-                Calificacion calificacion = calificacionesDelUsuario.get(j);
-                Pelicula pelicula = datos.getPeliculas().obtener(calificacion.getIdPelicula());
-                if (pelicula != null) {
-                    MiLista<String> generos = pelicula.getGeneros();
-                    for (int k = 0; k < generos.size(); k++) {
-                        usuario.agregarCalificacionPorGenero(generos.get(k));
+                UsuarioConConteo topActual = topUsuariosPorGenero.obtener(genero);
+                if (topActual == null || conteoUsuario > topActual.conteo) {
+                    try {
+                        // Usamos la clase de ayuda para guardar al usuario y su conteo.
+                        topUsuariosPorGenero.actualizar(genero, new UsuarioConConteo(u, conteoUsuario));
+                    } catch (ElementoNoExistenteException e) {
+                        try {
+                            topUsuariosPorGenero.insertar(genero, new UsuarioConConteo(u, conteoUsuario));
+                        } catch (ElementoYaExistenteException ex) { /* Ignored */ }
                     }
                 }
             }
         }
+        // ---------------------------------
+
+        // 5. Imprimir los resultados.
+        System.out.println("\n-- Top Usuarios por Género (Top 10 Géneros más Vistos) --");
+        int limite = Math.min(10, generosOrdenados.size());
+        for (int i = 0; i < limite; i++) {
+            String generoTop = generosOrdenados.get(i).getClave();
+            // OPTIMIZADO: Obtenemos el resultado con una búsqueda O(1), sin bucles anidados.
+            UsuarioConConteo ganador = topUsuariosPorGenero.obtener(generoTop);
+            if (ganador != null) {
+                System.out.printf("%d,%s,%d\n", ganador.usuario.getId(), generoTop, ganador.conteo);
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("\n=======================================================");
+        System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
+        System.out.println("=======================================================");
     }
+
+    /**
+     * Método de ayuda para el pre-cálculo, ahora optimizado con for-each.
+     */
+    private void prepararCalificacionesPorGeneroParaUsuarios() {
+        System.out.println("  (Procesando géneros de usuarios por primera vez, esto puede tardar un momento...)");
+        for (Usuario usuario : datos.getUsuarios()) {
+            for (Calificacion calificacion : usuario.getCalificacionesDelUsuario()) {
+                Pelicula pelicula = datos.getPeliculas().obtener(calificacion.getIdPelicula());
+                if (pelicula != null) {
+                    for (String genero : pelicula.getGeneros()) {
+                        usuario.agregarCalificacionPorGenero(genero);
+                    }
+                }
+            }
+        }
+        this.generosProcesados = true;
+    }
+
 
 
 }

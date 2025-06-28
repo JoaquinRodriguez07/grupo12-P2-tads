@@ -22,9 +22,8 @@ public class Usuario implements Comparable<Usuario> {
     public Usuario(int id) {
         this.id = id;
         this.calificacionesDelUsuario = new MiArrayList<>();
-        this.calificacionesPorGenero = new HashCerradaLineal<>();
+        this.calificacionesPorGenero = new HashCerradaLineal<>(23);
     }
-
     public void agregarCalificacionPorGenero(String genero) {
         Integer contador = this.calificacionesPorGenero.obtener(genero);
         if (contador == null) {
