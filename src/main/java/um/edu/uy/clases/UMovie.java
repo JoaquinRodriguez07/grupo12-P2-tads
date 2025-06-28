@@ -1,33 +1,20 @@
 package um.edu.uy.clases;
 
-import um.edu.uy.clases.Calificacion;
-import um.edu.uy.clases.Coleccion;
-import um.edu.uy.clases.DataParaCargadores;
-import um.edu.uy.clases.Pelicula;
-import um.edu.uy.clases.Persona;
-import um.edu.uy.clases.Sistema;
-import um.edu.uy.clases.Usuario;
 import um.edu.uy.cargadoresDeData.CargadorDeCalificaciones;
 import um.edu.uy.cargadoresDeData.CargadorDeCredits;
 import um.edu.uy.cargadoresDeData.CargadorDeMovies;
-import um.edu.uy.herramientasDeSorting.MergeSort;
-import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
-import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
-import um.edu.uy.tadsAuxiliares.hashtable.HashCerradaLineal;
-import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
 
-import java.util.Comparator;
 import java.util.Scanner;
 
-public class UMovie2 {
+public class UMovie {
 
     private DataParaCargadores datos;
-    private Sistema sistema; // El objeto que contiene la lógica de las consultas
+    private Sistema sistema;
     private boolean datosCargados = false;
     private long tiempoDeCarga = 0;
 
     public static void main(String[] args) {
-        UMovie2 aplicacion = new UMovie2();
+        UMovie aplicacion = new UMovie();
         aplicacion.iniciar();
     }
 
@@ -71,7 +58,6 @@ public class UMovie2 {
         System.out.println("Iniciando la carga de datos...");
         long startTime = System.currentTimeMillis();
 
-        // 1. Inicializar el contenedor de datos y la clase de sistema
         datos = new DataParaCargadores(180001, 64801, 305009, 60007, 40039);
         sistema = new Sistema(datos);
 

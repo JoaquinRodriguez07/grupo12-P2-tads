@@ -10,7 +10,7 @@ import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
 public class Coleccion implements Comparable<Coleccion> {
     private int id;
     private String titulo;
-    private int cantidadPeliculas; // Este campo necesitará ser actualizado si se usa
+    private int cantidadPeliculas;
     private HashTable<Integer, Pelicula> peliculas;
     private double ingresos;
 

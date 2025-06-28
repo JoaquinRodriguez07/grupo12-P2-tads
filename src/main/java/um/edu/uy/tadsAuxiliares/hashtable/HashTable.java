@@ -1,10 +1,8 @@
-// Archivo: um/edu/uy/tadsAuxiliares/hashtable/HashTable.java
 
 package um.edu.uy.tadsAuxiliares.hashtable;
 
 import um.edu.uy.excepciones.ElementoNoExistenteException;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
-import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 
 public interface HashTable<K extends Comparable<K>, T> extends Iterable<T> {
 

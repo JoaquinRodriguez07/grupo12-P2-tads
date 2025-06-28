@@ -24,7 +24,6 @@ public class Calificacion implements Comparable<Calificacion> {
 
     @Override
     public int compareTo(Calificacion otra) {
-        // Criterio de comparación:
         // 1. Primero, compara por idPelicula (el ID de la película)
         int idPeliculaComparison = Integer.compare(this.idPelicula, otra.idPelicula);
         if (idPeliculaComparison != 0) {
@@ -38,7 +37,6 @@ public class Calificacion implements Comparable<Calificacion> {
         }
 
         // 3. Si película y usuario son los mismos, compara por fecha
-        // (LocalDate tiene su propio compareTo)
         if (this.fecha != null && otra.fecha != null) {
             int fechaComparison = this.fecha.compareTo(otra.fecha);
             if (fechaComparison != 0) {
@@ -50,7 +48,6 @@ public class Calificacion implements Comparable<Calificacion> {
             return 1; // Una fecha nula es "menor"
         }
 
-        // 4si todo lo anterior es igual, compara por puntaje
         return Double.compare(this.puntaje, otra.puntaje);
     }
 

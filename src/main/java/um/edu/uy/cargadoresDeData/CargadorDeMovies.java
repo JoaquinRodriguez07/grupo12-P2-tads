@@ -7,7 +7,6 @@ import um.edu.uy.clases.Coleccion;
 import um.edu.uy.clases.Pelicula;
 import um.edu.uy.excepciones.ElementoYaExistenteException;
 import um.edu.uy.tadsAuxiliares.arraylist.MiArrayList;
-import um.edu.uy.tadsAuxiliares.hashtable.HashCerradaLineal;
 import um.edu.uy.tadsAuxiliares.hashtable.HashTable;
 import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 
@@ -21,7 +20,6 @@ import java.util.regex.Pattern;
 
 public class CargadorDeMovies {
 
-    // Patrones para extraer información de los campos tipo JSON
     private static final Pattern COLLECTION_ID_PATTERN = Pattern.compile("'id':\\s*(\\d+)");
     private static final Pattern COLLECTION_NAME_PATTERN = Pattern.compile("'name':\\s*'([^']*)'");
     private static final Pattern GENRE_NAME_PATTERN = Pattern.compile("'name':\\s*'([^']*)'");
@@ -70,7 +68,6 @@ public class CargadorDeMovies {
             // Se inserta la película en la tabla hash principal de películas
             peliculasHash.insertar(pelicula.getId(), pelicula);
 
-            // --- Lógica para manejar las colecciones ---
             if (collectionInfo != null) {
                 // La película pertenece a una saga
                 int coleccionId = Integer.parseInt(collectionInfo[0]);
@@ -103,9 +100,6 @@ public class CargadorDeMovies {
         }
     }
 
-    /**
-     * Parsea el string JSON de géneros y devuelve una lista de nombres de género.
-     */
     private MiLista<String> parseGeneros(String genresRaw) {
         MiLista<String> generos = new MiArrayList<>();
         if (genresRaw == null || genresRaw.isEmpty() || genresRaw.equals("[]")) {
@@ -118,10 +112,6 @@ public class CargadorDeMovies {
         return generos;
     }
 
-    /**
-     * Parsea el string JSON de la colección y devuelve su ID y nombre.
-     * @return Un array de String `[id, nombre]` o `null` si no hay colección.
-     */
     private String[] parseCollectionInfo(String collectionRaw) {
         if (collectionRaw == null || collectionRaw.isEmpty()) {
             return null;

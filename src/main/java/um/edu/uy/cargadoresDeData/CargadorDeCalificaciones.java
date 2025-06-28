@@ -23,14 +23,6 @@ public class CargadorDeCalificaciones {
     private final CSVFormat formatoLectura = CSVFormat.DEFAULT.builder()
             .setHeader().setSkipHeaderRecord(true).setIgnoreHeaderCase(true).setTrim(true).build();
 
-    /**
-     * Carga las calificaciones y las organiza en tres estructuras diferentes para máxima eficiencia.
-     *
-     * @param filePath La ruta al archivo ratings.csv.
-     * @param todasLasCalificaciones Una MiLista que almacenará todas las calificaciones.
-     * @param calificacionesPorPelicula Una HashTable que agrupará las calificaciones por ID de película.
-     * @param usuarios Una HashTable que almacenará los usuarios y sus calificaciones.
-     */
     public void cargarCalificaciones(String filePath, MiLista<Calificacion> todasLasCalificaciones,
                                      HashTable<Integer, MiLista<Calificacion>> calificacionesPorPelicula,
                                      HashTable<Integer, Usuario> usuarios) {

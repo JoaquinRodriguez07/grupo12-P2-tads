@@ -1,13 +1,10 @@
-// Archivo: um/edu/uy/tadsAuxiliares/hashtable/KeyIterator.java
 
 package um.edu.uy.tadsAuxiliares.hashtable;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * Un iterador externo para las CLAVES de la clase HashCerradaLineal.
- */
+
 class KeyIterator<K extends Comparable<K>, T> implements Iterator<K> {
 
     private final Objeto<K, T>[] tabla;
@@ -42,7 +39,6 @@ class KeyIterator<K extends Comparable<K>, T> implements Iterator<K> {
         if (!hasNext()) {
             throw new NoSuchElementException("No hay más claves en la iteración.");
         }
-        // La única diferencia con HashIterator: devolvemos la clave.
         K key = tabla[currentIndex].getClave();
         foundCount++;
         currentIndex++;

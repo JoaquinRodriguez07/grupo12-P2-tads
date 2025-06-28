@@ -26,6 +26,6 @@ public class DataParaCargadores {
         this.calificaciones = new MiArrayList<>();
         this.calificacionesPorPelicula = new HashCerradaLineal<>(capPeliculasConRatings); //aca ajuste pq no todas las peliculas tienen calificaciones aparentemente
 
-        this.actoresPorPelicula = new HashCerradaLineal<>(capPeliculas);  // Se inicializa la nueva tabla hash
+        this.actoresPorPelicula = new HashCerradaLineal<>(capPeliculas);
     }
 }

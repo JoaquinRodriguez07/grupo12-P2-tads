@@ -10,7 +10,7 @@ public class MergeSort { //reutilizado de mi practico
 
     public static <T> void sort(MiLista<T> lista, Comparator<T> comparador) {
         if (lista == null || lista.size() <= 1) {
-            return; // No necesita ordenarse
+            return;
         }
         mergeSort(lista, comparador);
     }

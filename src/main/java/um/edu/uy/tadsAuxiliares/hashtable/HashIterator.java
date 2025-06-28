@@ -5,12 +5,7 @@ package um.edu.uy.tadsAuxiliares.hashtable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * Un iterador externo para la clase HashCerradaLineal.
- * Esta clase no es pública, ya que solo necesita ser visible dentro de su propio paquete.
- * @param <K> El tipo de la clave.
- * @param <T> El tipo del valor.
- */
+
 class HashIterator<K extends Comparable<K>, T> implements Iterator<T> {
 
     // Campos para almacenar el estado de la tabla hash que se está iterando
@@ -23,13 +18,7 @@ class HashIterator<K extends Comparable<K>, T> implements Iterator<T> {
     private int currentIndex;
     private int foundCount;
 
-    /**
-     * Constructor que recibe el estado de la HashCerradaLineal.
-     * @param tabla El array interno de la tabla hash.
-     * @param capacidad La capacidad total del array.
-     * @param size El número de elementos reales en la tabla.
-     * @param tombstone La instancia del objeto que se usa para marcar elementos borrados.
-     */
+
     public HashIterator(Objeto<K, T>[] tabla, int capacidad, int size, Objeto<K, T> tombstone) {
         this.tabla = tabla;
         this.capacidad = capacidad;

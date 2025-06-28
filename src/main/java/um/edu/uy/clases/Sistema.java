@@ -30,7 +30,7 @@ public class Sistema {
 
     public void funcion1() {
         System.out.println("\n--- Ejecutando Consulta 1: Top 5 Películas por Idioma ---");
-        long startTime = System.currentTimeMillis(); // Medidor común: se inicia el cronómetro
+        long startTime = System.currentTimeMillis();
 
         // 1. Agrupar películas por idioma
         HashTable<String, MiArrayList<Pelicula>> peliculasPorIdioma = new HashCerradaLineal<>(200);
@@ -51,10 +51,7 @@ public class Sistema {
         String[] idiomas = {"en", "fr", "it", "es", "pt"};
         String[] titulos = {"Inglés", "Francés", "Italiano", "Español", "Portugués"};
 
-        // 2. Comparador optimizado
-        Comparator<Pelicula> comparador = (p1, p2) -> Integer.compare(
-                p2.getConteoCalificaciones(),
-                p1.getConteoCalificaciones()
+        Comparator<Pelicula> comparador = (p1, p2) -> Integer.compare(p2.getConteoCalificaciones(), p1.getConteoCalificaciones() //si uso esto va mas rapido
         );
 
         // 3. Procesar cada idioma
@@ -105,7 +102,6 @@ public class Sistema {
             if (obtenerCantidadCalificaciones(idPelicula) > 100) {
                 Pelicula p = datos.getPeliculas().obtener(idPelicula);
                 if (p != null) {
-                    // OPTIMIZACIÓN CLAVE: Calculamos el promedio UNA SOLA VEZ y lo guardamos en la película.
                     p.setCalificacionPromedio(calcularPromedioCalificacion(p));
                     candidatas.add(p);
                 }
@@ -138,7 +134,7 @@ public class Sistema {
     }
 
     public void funcion3() {
-        System.out.println("\n--- Ejecutando Consulta 3: Top 5 Colecciones por Ingresos ---");
+        System.out.println("\n Ejecutando Consulta 3: Top 5 Colecciones por Ingresos");
         long startTime = System.currentTimeMillis();
 
         // 1. Calculamos los ingresos de cada colección de forma optimizada.
@@ -159,7 +155,7 @@ public class Sistema {
         Comparator<Coleccion> comp = (c1, c2) -> Double.compare(c2.getIngresos(), c1.getIngresos());
         MergeSort.sort(listaParaOrdenar, comp);
         // 4. Imprimimos el resultado con el formato solicitado.
-        System.out.println("\n-- Top 5 Colecciones por Ingresos Generados --");
+        System.out.println("\nTop 5 Colecciones por Ingresos Generados");
         int limite = Math.min(5, listaParaOrdenar.size());
         for (int i = 0; i < limite; i++) {
             Coleccion c = listaParaOrdenar.get(i);
@@ -189,7 +185,7 @@ public class Sistema {
     }
 
     public void funcion4() {
-        System.out.println("\n--- Ejecutando Consulta 4: Top 10 Directores por Calificación (Mediana) ---");
+        System.out.println("\n Ejecutando Consulta 4: Top 10 Directores por Calificación (Mediana)");
         long startTime = System.currentTimeMillis();
 
         MiArrayList<Persona> directoresCalificados = new MiArrayList<>();
@@ -199,13 +195,11 @@ public class Sistema {
             if (p.isDirector() && p.getIdsPeliculasDirigidas().size() > 1) {
                 MiArrayList<Double> calificaciones = obtenerCalificacionesDeDirector(p);
                 if (calificaciones.size() > 100) {
-                    // La estrategia de cachear el resultado es excelente y se mantiene.
                     p.setCalificacion(calculoMediana(calificaciones));
                     directoresCalificados.add(p);
                 }
             }
         }
-
         Comparator<Persona> comp = (p1, p2) -> Double.compare(p2.getCalificacion(), p1.getCalificacion());
         MergeSort.sort(directoresCalificados, comp);
 
@@ -220,10 +214,8 @@ public class Sistema {
         System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
 
     }
-
     private MiArrayList<Double> obtenerCalificacionesDeDirector(Persona director) {
         MiArrayList<Double> lista = new MiArrayList<>();
-        // OPTIMIZADO: Iteramos sobre la lista de IDs de películas del director.
         for (Integer idPelicula : director.getIdsPeliculasDirigidas()) {
             MiLista<Calificacion> califPeli = datos.getCalificacionesPorPelicula().obtener(idPelicula);
             if (califPeli != null) {
@@ -238,7 +230,6 @@ public class Sistema {
         if (lista.isEmpty()) {
             return 0.0;
         }
-        // La ordenación es un paso necesario para calcular la mediana.
         MergeSort.sort(lista, Double::compare);
         int n = lista.size();
         if (n % 2 != 0) {
@@ -255,25 +246,19 @@ public class Sistema {
     public void funcion5() {
         System.out.println("\n--- Ejecutando Consulta 5: Actor más Popular por Mes ---");
         long startTime = System.currentTimeMillis();
-        // 1. Crear un arreglo de HashTables, una para cada mes.
         @SuppressWarnings("unchecked")
         HashTable<Integer, ActorStats>[] statsPorMes = (HashTable<Integer, ActorStats>[]) new HashTable[12];
         for (int i = 0; i < 12; i++) {
             statsPorMes[i] = new HashCerradaLineal<>(30001);
         }
 
-        // 2. Recorrer TODAS las calificaciones UNA SOLA VEZ.
         for (Calificacion calificacion : datos.getCalificaciones()) {
             if (calificacion.getFecha() != null) {
                 // El mes va de 1 a 12, el índice del array de 0 a 11.
                 int monthIndex = calificacion.getFecha().getMonthValue() - 1;
-
-                // Obtenemos la tabla de estadísticas para el mes correspondiente.
                 HashTable<Integer, ActorStats> statsDelMes = statsPorMes[monthIndex];
-
                 MiLista<Persona> actores = datos.getActoresPorPelicula().obtener(calificacion.getIdPelicula());
                 if (actores != null) {
-                    // Iteramos sobre los actores de la película calificada.
                     for (Persona actor : actores) {
                         actualizarStatsActor(statsDelMes, actor, calificacion.getIdPelicula());
                     }
@@ -281,26 +266,12 @@ public class Sistema {
             }
         }
 
-        // 3. Ahora que todo está procesado, imprimir los ganadores de cada mes.
         for (int month = 1; month <= 12; month++) {
             imprimirGanadorDelMes(month, statsPorMes[month - 1]);
         }
 
         long endTime = System.currentTimeMillis();
-        System.out.println("\n=======================================================");
         System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
-        System.out.println("=======================================================");
-    }
-
-    private static class ActorStats {
-        String nombre;
-        int ratingCount = 0;
-        // Aumentamos la capacidad aquí también para evitar las reestructuraciones pequeñas.
-        HashTable<Integer, Boolean> movies = new HashCerradaLineal<>(53);
-
-        ActorStats(String nombre) {
-            this.nombre = nombre;
-        }
     }
 
     private void actualizarStatsActor(HashTable<Integer, ActorStats> statsDelMes, Persona actor, int movieId) {
@@ -322,7 +293,6 @@ public class Sistema {
     private void imprimirGanadorDelMes(int month, HashTable<Integer, ActorStats> statsDelMes) {
         ActorStats actorGanador = null;
 
-        // OPTIMIZADO: Se itera directamente sobre los valores de la tabla hash.
         for (ActorStats currentStats : statsDelMes) {
             if (actorGanador == null || currentStats.ratingCount > actorGanador.ratingCount) {
                 actorGanador = currentStats;
@@ -331,7 +301,6 @@ public class Sistema {
 
         System.out.println("\n-- Mes: " + Month.of(month) + " --");
         if (actorGanador != null) {
-            // Formato de salida según la imagen
             System.out.printf("%s,%s,%d,%d\n",
                     Month.of(month).name(),
                     actorGanador.nombre,
@@ -342,23 +311,10 @@ public class Sistema {
         }
     }
 
-    //esta idea la tuve que verificar con chat pq me parecio media extraña pero funciona
-    private static class UsuarioConConteo {
-        Usuario usuario;
-        int conteo;
-
-        public UsuarioConConteo(Usuario usuario, int conteo) {
-            this.usuario = usuario;
-            this.conteo = conteo;
-        }
-    }
-
-
     public void funcion6() {
         System.out.println("\n--- Ejecutando Consulta 6: Usuarios con más Calificaciones por Género ---");
         long startTime = System.currentTimeMillis();
 
-        // 1. Pre-procesar los géneros por usuario si no se ha hecho.
         if (!generosProcesados) {
             prepararCalificacionesPorGeneroParaUsuarios();
         }
@@ -371,24 +327,19 @@ public class Sistema {
                 for (String genero : p.getGeneros()) {
                     Integer count = conteoGeneros.obtener(genero);
                     try {
-                        // OPTIMIZADO: Se usa actualizar() en lugar de borrar() e insertar().
                         if (count == null) conteoGeneros.insertar(genero, 1);
                         else conteoGeneros.actualizar(genero, count + 1);
                     } catch (Exception ignored) {}
                 }
             }
         }
-
         // 3. Ordenar los géneros por popularidad de forma eficiente.
         MiArrayList<Objeto<String, Integer>> generosOrdenados = new MiArrayList<>();
-        // OPTIMIZADO: Usamos el iterador de entradas (pares clave-valor).
         for (Objeto<String, Integer> entry : conteoGeneros.entries()) {
             generosOrdenados.add(entry);
         }
-        // El comparador ahora es súper rápido, no hace búsquedas en la tabla.
         MergeSort.sort(generosOrdenados, (e1, e2) -> e2.getValor().compareTo(e1.getValor()));
 
-        // --- OPTIMIZACIÓN ALGORÍTMICA ---
         // 4. Encontrar el mejor usuario para CADA género en UNA SOLA PASADA.
         HashCerradaLineal<String, UsuarioConConteo> topUsuariosPorGenero = new HashCerradaLineal<>(25); // 25 géneros aprox.
         for (Usuario u : datos.getUsuarios()) {
@@ -409,8 +360,6 @@ public class Sistema {
                 }
             }
         }
-        // ---------------------------------
-
         // 5. Imprimir los resultados.
         System.out.println("\n-- Top Usuarios por Género (Top 10 Géneros más Vistos) --");
         int limite = Math.min(10, generosOrdenados.size());
@@ -422,16 +371,10 @@ public class Sistema {
                 System.out.printf("%d,%s,%d\n", ganador.usuario.getId(), generoTop, ganador.conteo);
             }
         }
-
         long endTime = System.currentTimeMillis();
-        System.out.println("\n=======================================================");
         System.out.println("Tiempo de ejecución de la consulta: " + (System.currentTimeMillis() - startTime) + "ms");
-        System.out.println("=======================================================");
     }
 
-    /**
-     * Método de ayuda para el pre-cálculo, ahora optimizado con for-each.
-     */
     private void prepararCalificacionesPorGeneroParaUsuarios() {
         System.out.println("  (Procesando géneros de usuarios por primera vez, esto puede tardar un momento...)");
         for (Usuario usuario : datos.getUsuarios()) {
@@ -447,6 +390,25 @@ public class Sistema {
         this.generosProcesados = true;
     }
 
+    private static class ActorStats { //esto me es re util auqnue debo de ver como lo implemento mejor
+        String nombre;
+        int ratingCount = 0;
+        HashTable<Integer, Boolean> movies = new HashCerradaLineal<>(53);
+        ActorStats(String nombre) {
+            this.nombre = nombre;
+        }
+    }
+
+    //eestuve investigando un caho y funciona esto, hay que verlo
+    private static class UsuarioConConteo {
+        Usuario usuario;
+        int conteo;
+
+        public UsuarioConConteo(Usuario usuario, int conteo) {
+            this.usuario = usuario;
+            this.conteo = conteo;
+        }
+    }
 
 
 }

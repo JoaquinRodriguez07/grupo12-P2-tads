@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 
 public class CargadorDeCredits {
 
-    // Patrones robustecidos para manejar las inconsistencias del CSV
     private static final Pattern PATRON_MEMBER = Pattern.compile("\\{.*?\\}");
     private static final Pattern PATRON_ID = Pattern.compile("['\"]id['\"]\\s*:\\s*(\\d+)");
     private static final Pattern PATRON_NOMBRE = Pattern.compile("['\"]name['\"]\\s*:\\s*(?:'((?:\\\\.|[^'])*)'|\"((?:\\\\.|[^\"])*)\")");
@@ -52,7 +51,6 @@ public class CargadorDeCredits {
             procesarCrew(crewData, movieId, personasHashTable);
             procesarCast(castData, movieId, personasHashTable, actoresPorPelicula);
         } catch (IllegalArgumentException ignored) { //tiro esto aca porque ese catch me rompe todito
-            // Se ignoran filas con formato incorrecto
         }
     }
 
@@ -109,7 +107,7 @@ public class CargadorDeCredits {
         Matcher castMatcher = PATRON_MEMBER.matcher(castData);
         while (castMatcher.find()) {
             String castMemberString = castMatcher.group();
-            if (!PATRON_CHARACTER.matcher(castMemberString).find()) continue;
+            if (!PATRON_CHARACTER.matcher(castMemberString).find()) continue; //
 
             Matcher idMatcher = PATRON_ID.matcher(castMemberString);
             Matcher nameMatcher = PATRON_NOMBRE.matcher(castMemberString);
@@ -117,7 +115,6 @@ public class CargadorDeCredits {
             if (idMatcher.find() && nameMatcher.find()) {
                 int personaId = Integer.parseInt(idMatcher.group(1));
                 String nombre;
-                // Bloque if-else para obtener el valor de 'name'
                 if (nameMatcher.group(1) != null) {
                     nombre = nameMatcher.group(1);
                 } else {
