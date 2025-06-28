@@ -7,12 +7,42 @@ import um.edu.uy.tadsAuxiliares.arraylist.MiLista;
 
 @Getter
 @Setter
-public class Persona {
-    private String nombre;
-    private MiLista rol;
 
-    public Persona(String nombre) {
+public class Persona implements Comparable<Persona>{
+
+    private int id;
+    private String nombre;
+    private MiLista<Integer> idsPeliculasDirigidas;
+    private MiLista<Integer> idsPeliculasActuo;
+    private double calificacion;
+
+
+
+    public Persona(int id, String nombre) {
+        this.id = id;
         this.nombre = nombre;
-        this.rol = new MiArrayList();
+        this.idsPeliculasDirigidas = new MiArrayList<>();
+        this.idsPeliculasActuo = new MiArrayList<>();
+        this.calificacion = 0;
     }
+
+
+
+    public boolean isDirector() {
+        return idsPeliculasDirigidas != null && !idsPeliculasDirigidas.isEmpty();
+    }
+
+
+
+    public boolean isActor() {
+        return idsPeliculasActuo != null && !idsPeliculasActuo.isEmpty();
+    }
+
+
+
+    @Override
+    public int compareTo(Persona otraPersona){
+        return Integer.compare(this.id, otraPersona.id);
+    }
+
 }

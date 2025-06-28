@@ -1,18 +1,58 @@
+
 package um.edu.uy.tadsAuxiliares.arraylist;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-import um.edu.uy.clases.Calificaciones;
-
-public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
+public class MiArrayList<T> implements MiLista<T> {
     private T[] datos;
     private int tamanio;
     private static final int CAPACIDAD_INICIAL = 10;
 
     @SuppressWarnings("unchecked")
     public MiArrayList() {
-        datos = (T[]) new Comparable[CAPACIDAD_INICIAL];
+        // CORRECCIÓN de bug que ya habíamos hecho: usar Object en lugar de Comparable.
+        datos = (T[]) new Object[CAPACIDAD_INICIAL];
         tamanio = 0;
     }
+
+    @Override
+    public Iterator<T> iterator() {
+        // Se devuelve una nueva instancia de un iterador (implementado como una clase anónima).
+        return new Iterator<T>() {
+            private int currentIndex = 0; // El iterador mantiene su propia posición.
+
+            @Override
+            public boolean hasNext() {
+                // Hay un siguiente elemento si la posición actual es menor que el tamaño de la lista.
+                return currentIndex < tamanio;
+            }
+
+            @Override
+            public T next() {
+                // Si no hay siguiente elemento, se lanza una excepción (comportamiento estándar).
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                // Se devuelve el dato en la posición actual y luego se incrementa la posición.
+                return datos[currentIndex++];
+            }
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    private void redimensionar() {
+        // <-- CAMBIO: Se usa Object[] aquí también para mantener la consistencia y seguridad.
+        T[] nuevo = (T[]) new Object[datos.length * 2];
+        for (int i = 0; i < tamanio; i++) {
+            nuevo[i] = datos[i];
+        }
+        datos = nuevo;
+    }
+
+    // <-- CAMBIO: El método compareTo se elimina porque la interfaz ya no lo exige.
+
+    // ... [resto de la clase sin cambios] ...
 
     @Override
     public void add(T elemento) {
@@ -70,21 +110,18 @@ public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
 
     @Override
     public int indexOf(T elemento) {
-        for (int i = 0; i < tamanio; i++) {
-            if (datos[i].equals(elemento)) {
-                return i;
+        if (elemento == null) { // Manejo de nulos
+            for (int i = 0; i < tamanio; i++) {
+                if (datos[i] == null) return i;
+            }
+        } else {
+            for (int i = 0; i < tamanio; i++) {
+                if (elemento.equals(datos[i])) {
+                    return i;
+                }
             }
         }
         return -1;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void redimensionar() {
-        T[] nuevo = (T[]) new Comparable[datos.length * 2];
-        for (int i = 0; i < tamanio; i++) {
-            nuevo[i] = datos[i];
-        }
-        datos = nuevo;
     }
 
     private void validarIndice(int indice) {
@@ -93,7 +130,6 @@ public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
         }
     }
 
-
     @Override
     public void addAll(MiLista<T> otraLista) {
         for (int i = 0; i < otraLista.size(); i++) {
@@ -101,8 +137,5 @@ public class MiArrayList<T extends Comparable<T>> implements MiLista<T> {
         }
     }
 
-    @Override
-    public int compareTo(MiLista<Calificaciones> o) {
-        return 0;
-    }
+
 }

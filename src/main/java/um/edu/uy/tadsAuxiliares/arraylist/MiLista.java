@@ -1,8 +1,12 @@
+// Archivo: um/edu/uy/tadsAuxiliares/arraylist/MiLista.java
+
 package um.edu.uy.tadsAuxiliares.arraylist;
 
-import um.edu.uy.clases.Calificaciones;
+import um.edu.uy.clases.Calificacion;
 
-public interface MiLista<T> extends Comparable<MiLista<Calificaciones>> {
+// <-- CAMBIO: Hacemos que la interfaz extienda Iterable<T>.
+// Esto nos permitirá usar cualquier MiLista en un bucle for-each.
+public interface MiLista<T> extends Iterable<T> {
     void add(T elemento);
     T get(int indice);
     void set(int indice, T elemento);
@@ -12,6 +16,5 @@ public interface MiLista<T> extends Comparable<MiLista<Calificaciones>> {
     void clear();
     boolean contains(T elemento);
     int indexOf(T elemento);
-
-    void addAll(MiLista<T> otraPila);
+    void addAll(MiLista<T> otraLista);
 }

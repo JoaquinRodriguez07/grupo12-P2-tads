@@ -5,18 +5,17 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Setter
 @Getter
 @EqualsAndHashCode //esto creo que nos va asolucioanr la vida para comparar cosas en las funciones pero no se
-public class Calificaciones implements Comparable<Calificaciones> {
+public class Calificacion implements Comparable<Calificacion> {
     private int usuario;
     private int idPelicula;
     private double puntaje;
     private LocalDate fecha;
 
-    public Calificaciones(int usuario, int idPelicula, double puntaje, LocalDate fecha) {
+    public Calificacion(int usuario, int idPelicula, double puntaje, LocalDate fecha) {
         this.usuario = usuario;
         this.idPelicula = idPelicula;
         this.puntaje = puntaje;
@@ -24,7 +23,7 @@ public class Calificaciones implements Comparable<Calificaciones> {
     }
 
     @Override
-    public int compareTo(Calificaciones otra) {
+    public int compareTo(Calificacion otra) {
         // Criterio de comparación:
         // 1. Primero, compara por idPelicula (el ID de la película)
         int idPeliculaComparison = Integer.compare(this.idPelicula, otra.idPelicula);
@@ -56,21 +55,6 @@ public class Calificaciones implements Comparable<Calificaciones> {
     }
 
 
-    //LO DEJO ACA POR SI LO DE LOMBOK NO FUNCA
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        Calificaciones that = (Calificaciones) o;
-//        return usuario == that.usuario &&
-//                idPelicula == that.idPelicula &&
-//                Double.compare(puntaje, that.puntaje) == 0 &&
-//                Objects.equals(fecha, that.fecha); // Objects.equals maneja nulos
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(usuario, idPelicula, puntaje, fecha);
-//    }
+
 
 }
