@@ -11,14 +11,12 @@ public class MiArrayList<T> implements MiLista<T> {
 
     @SuppressWarnings("unchecked")
     public MiArrayList() {
-        // CORRECCIÓN de bug que ya habíamos hecho: usar Object en lugar de Comparable.
         datos = (T[]) new Object[CAPACIDAD_INICIAL];
         tamanio = 0;
     }
 
     @Override
     public Iterator<T> iterator() {
-        // Se devuelve una nueva instancia de un iterador (implementado como una clase anónima).
         return new Iterator<T>() {
             private int currentIndex = 0; // El iterador mantiene su propia posición.
 
@@ -50,9 +48,7 @@ public class MiArrayList<T> implements MiLista<T> {
         datos = nuevo;
     }
 
-    // <-- CAMBIO: El método compareTo se elimina porque la interfaz ya no lo exige.
 
-    // ... [resto de la clase sin cambios] ...
 
     @Override
     public void add(T elemento) {

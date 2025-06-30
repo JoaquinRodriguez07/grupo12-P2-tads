@@ -39,13 +39,9 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
     @SuppressWarnings("unchecked")
     @Override
     public Iterable<K> keys() {
-        // Usa una expresión lambda para devolver una nueva instancia de nuestro KeyIterator.
+
         return () -> new KeyIterator<K,T>(this.tabla, this.capacidad, this.size, TOMBSTONE);
     }
-
-
-    // El resto del código de la clase (insertar, borrar, obtener, etc.)
-    // permanece exactamente igual que en la corrección anterior.
 
     @Override
     public void insertar(K clave, T valor) throws ElementoYaExistenteException {
@@ -99,9 +95,9 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
 
     @Override
     public void reestructurar() {
-        System.out.println("REESTRUCTURANDO TABLA HASH. Capacidad anterior: " + capacidad + ".");
+//        System.out.println("REESTRUCTURANDO TABLA HASH. Capacidad anterior: " + capacidad + ".");
         int nuevaCapacidad = siguientePrimo(capacidad * 2);
-        System.out.println("Nueva capacidad (primo): " + nuevaCapacidad);
+//        System.out.println("Nueva capacidad (primo): " + nuevaCapacidad);
         Objeto<K, T>[] tablaVieja = tabla;
         @SuppressWarnings("unchecked")
         Objeto<K, T>[] nuevaTabla = (Objeto<K, T>[]) new Objeto[nuevaCapacidad];
@@ -118,7 +114,7 @@ public class HashCerradaLineal<K extends Comparable<K>, T> implements HashTable<
                 }
             }
         }
-        System.out.println("Reestructuración completada. Elementos reinsertados: " + size);
+//        System.out.println("Reestructuración completada. Elementos reinsertados: " + size);
     }
 
     private int hash(K clave) {

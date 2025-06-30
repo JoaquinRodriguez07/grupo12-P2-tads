@@ -20,9 +20,9 @@ import java.util.regex.Pattern;
 
 public class CargadorDeMovies {
 
-    private static final Pattern COLLECTION_ID_PATTERN = Pattern.compile("'id':\\s*(\\d+)");
-    private static final Pattern COLLECTION_NAME_PATTERN = Pattern.compile("'name':\\s*'([^']*)'");
-    private static final Pattern GENRE_NAME_PATTERN = Pattern.compile("'name':\\s*'([^']*)'");
+    private static final Pattern idColeccionPatron = Pattern.compile("'id':\\s*(\\d+)");
+    private static final Pattern coleccionNombrePatron = Pattern.compile("'name':\\s*'([^']*)'");
+    private static final Pattern generoPatron = Pattern.compile("'name':\\s*'([^']*)'");
 
 
     public void cargadorMoviesAHash(String rutaArchivo, HashTable<Integer, Pelicula> peliculasHash, HashTable<Integer, Coleccion> coleccionesHash) {
@@ -105,7 +105,7 @@ public class CargadorDeMovies {
         if (genresRaw == null || genresRaw.isEmpty() || genresRaw.equals("[]")) {
             return generos;
         }
-        Matcher matcher = GENRE_NAME_PATTERN.matcher(genresRaw);
+        Matcher matcher = generoPatron.matcher(genresRaw);
         while (matcher.find()) {
             generos.add(matcher.group(1));
         }
@@ -116,8 +116,8 @@ public class CargadorDeMovies {
         if (collectionRaw == null || collectionRaw.isEmpty()) {
             return null;
         }
-        Matcher idMatcher = COLLECTION_ID_PATTERN.matcher(collectionRaw);
-        Matcher nameMatcher = COLLECTION_NAME_PATTERN.matcher(collectionRaw);
+        Matcher idMatcher = idColeccionPatron.matcher(collectionRaw);
+        Matcher nameMatcher = coleccionNombrePatron.matcher(collectionRaw);
 
         if (idMatcher.find() && nameMatcher.find()) {
             return new String[]{idMatcher.group(1), nameMatcher.group(1)};

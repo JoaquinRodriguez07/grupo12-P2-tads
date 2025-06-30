@@ -18,11 +18,11 @@ import java.util.regex.Pattern;
 
 public class CargadorDeCredits {
 
-    private static final Pattern PATRON_MEMBER = Pattern.compile("\\{.*?\\}");
-    private static final Pattern PATRON_ID = Pattern.compile("['\"]id['\"]\\s*:\\s*(\\d+)");
-    private static final Pattern PATRON_NOMBRE = Pattern.compile("['\"]name['\"]\\s*:\\s*(?:'((?:\\\\.|[^'])*)'|\"((?:\\\\.|[^\"])*)\")");
-    private static final Pattern PATRON_JOB = Pattern.compile("['\"]job['\"]\\s*:\\s*(?:'((?:\\\\.|[^'])*)'|\"((?:\\\\.|[^\"])*)\")");
-    private static final Pattern PATRON_CHARACTER = Pattern.compile("['\"]character['\"]\\s*:");
+    private static final Pattern patronMember = Pattern.compile("\\{.*?\\}");
+    private static final Pattern patronId = Pattern.compile("['\"]id['\"]\\s*:\\s*(\\d+)");
+    private static final Pattern patronNombre = Pattern.compile("['\"]name['\"]\\s*:\\s*(?:'((?:\\\\.|[^'])*)'|\"((?:\\\\.|[^\"])*)\")");
+    private static final Pattern patronJob = Pattern.compile("['\"]job['\"]\\s*:\\s*(?:'((?:\\\\.|[^'])*)'|\"((?:\\\\.|[^\"])*)\")");
+    private static final Pattern patronPersonaje = Pattern.compile("['\"]character['\"]\\s*:");
 
     public void cargarCredits(String rutaArchivo, HashTable<Integer, Persona> personasHashTable, HashTable<Integer, MiLista<Persona>> actoresPorPelicula) {
         CSVFormat format = CSVFormat.DEFAULT.builder()
@@ -57,10 +57,10 @@ public class CargadorDeCredits {
     private void procesarCrew(String crewData, int movieId, HashTable<Integer, Persona> personasHashTable) {
         if (crewData == null || crewData.isEmpty() || crewData.equals("[]")) return;
 
-        Matcher crewMatcher = PATRON_MEMBER.matcher(crewData);
+        Matcher crewMatcher = patronMember.matcher(crewData);
         while (crewMatcher.find()) {
             String crewMemberString = crewMatcher.group();
-            Matcher jobMatcher = PATRON_JOB.matcher(crewMemberString);
+            Matcher jobMatcher = patronJob.matcher(crewMemberString);
 
             if (jobMatcher.find()) {
                 String job;
@@ -72,13 +72,13 @@ public class CargadorDeCredits {
                 }
 
                 if ("Director".equalsIgnoreCase(job)) {
-                    Matcher idMatcher = PATRON_ID.matcher(crewMemberString);
-                    Matcher nameMatcher = PATRON_NOMBRE.matcher(crewMemberString);
+                    Matcher idMatcher = patronId.matcher(crewMemberString);
+                    Matcher nameMatcher = patronNombre.matcher(crewMemberString);
 
                     if (idMatcher.find() && nameMatcher.find()) {
                         int personaId = Integer.parseInt(idMatcher.group(1));
                         String nombre;
-                        // Bloque if-else para obtener el valor de 'name'
+
                         if (nameMatcher.group(1) != null) {
                             nombre = nameMatcher.group(1);
                         } else {
@@ -104,13 +104,13 @@ public class CargadorDeCredits {
     private void procesarCast(String castData, int movieId, HashTable<Integer, Persona> personasHashTable, HashTable<Integer, MiLista<Persona>> actoresPorPelicula) {
         if (castData == null || castData.isEmpty() || castData.equals("[]")) return;
 
-        Matcher castMatcher = PATRON_MEMBER.matcher(castData);
+        Matcher castMatcher = patronMember.matcher(castData);
         while (castMatcher.find()) {
             String castMemberString = castMatcher.group();
-            if (!PATRON_CHARACTER.matcher(castMemberString).find()) continue; //
+            if (!patronPersonaje.matcher(castMemberString).find()) continue; //
 
-            Matcher idMatcher = PATRON_ID.matcher(castMemberString);
-            Matcher nameMatcher = PATRON_NOMBRE.matcher(castMemberString);
+            Matcher idMatcher = patronId.matcher(castMemberString);
+            Matcher nameMatcher = patronNombre.matcher(castMemberString);
 
             if (idMatcher.find() && nameMatcher.find()) {
                 int personaId = Integer.parseInt(idMatcher.group(1));
